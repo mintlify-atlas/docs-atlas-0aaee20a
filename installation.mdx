@@ -1,0 +1,354 @@
+---
+title: Installation Guide
+description: Step-by-step instructions to install and configure Dashboard Laravel on your local development environment
+---
+
+## Prerequisites
+
+Before installing Dashboard Laravel, ensure you have the following software installed on your system:
+
+<Warning>
+Dashboard Laravel requires PHP 8.2 or higher. Check your PHP version with `php --version`.
+</Warning>
+
+| Software | Minimum Version | Purpose |
+|----------|----------------|----------|
+| **PHP** | 8.2+ | Backend runtime |
+| **Composer** | 2.x | PHP dependency manager |
+| **PostgreSQL** | 15+ | Database server |
+| **Git** | Latest | Version control |
+
+### Verify Prerequisites
+
+Run these commands to verify your system meets the requirements:
+
+```bash
+# Check PHP version
+php --version
+
+# Check Composer version
+composer --version
+
+# Check PostgreSQL version
+psql --version
+
+# Check Git version
+git --version
+```
+
+## Installation Steps
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the Dashboard Laravel repository to your local machine:
+
+    ```bash
+    git clone https://github.com/sofih-ii/Dashboard_php.git
+    cd dashboard-laravel
+    ```
+
+    <Tip>
+    Make sure you have SSH keys configured if cloning via SSH, or use HTTPS as shown above.
+    </Tip>
+  </Step>
+
+  <Step title="Install PHP Dependencies">
+    Use Composer to install all required PHP packages:
+
+    ```bash
+    composer install
+    ```
+
+    This will install:
+    - Laravel Framework 12.0
+    - Laravel Tinker 2.10.1
+    - All required dependencies from `composer.json`
+
+    <Info>
+    The installation may take a few minutes depending on your internet connection.
+    </Info>
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Copy the example environment file and create your own `.env` configuration:
+
+    ```bash
+    # Copy the environment template
+    cp .env.example .env
+    ```
+
+    Edit the `.env` file with your database credentials:
+
+    ```env .env
+    APP_NAME="Dashboard Laravel"
+    APP_ENV=local
+    APP_KEY=
+    APP_DEBUG=true
+    APP_URL=http://localhost:8000
+
+    # Database Configuration
+    DB_CONNECTION=pgsql
+    DB_HOST=127.0.0.1
+    DB_PORT=5432
+    DB_DATABASE=dashboard_db
+    DB_USERNAME=postgres
+    DB_PASSWORD=your_password_here
+
+    # Session Configuration
+    SESSION_DRIVER=database
+    SESSION_LIFETIME=120
+
+    # Logging
+    LOG_CHANNEL=stack
+    LOG_LEVEL=debug
+    ```
+
+    <Warning>
+    Replace `your_password_here` with your actual PostgreSQL password. Never commit this file to version control.
+    </Warning>
+  </Step>
+
+  <Step title="Generate Application Key">
+    Generate a unique encryption key for your application:
+
+    ```bash
+    php artisan key:generate
+    ```
+
+    This command will:
+    - Create a secure 32-character random string
+    - Automatically update the `APP_KEY` value in your `.env` file
+    - Enable Laravel's encryption services
+
+    <Note>
+    The application key is used to encrypt cookies, sessions, and other sensitive data.
+    </Note>
+  </Step>
+
+  <Step title="Create PostgreSQL Database">
+    Create a new PostgreSQL database for the application:
+
+    ```bash
+    # Connect to PostgreSQL
+    psql -U postgres
+    ```
+
+    ```sql
+    -- Create the database
+    CREATE DATABASE dashboard_db;
+
+    -- Verify the database was created
+    \l
+
+    -- Exit psql
+    \q
+    ```
+
+    <Tip>
+    Make sure the database name matches the `DB_DATABASE` value in your `.env` file.
+    </Tip>
+  </Step>
+
+  <Step title="Run Database Migrations">
+    Execute the database migrations to create all required tables:
+
+    ```bash
+    # Run all migrations
+    php artisan migrate
+    ```
+
+    This will create the following tables:
+    - `users` - User accounts and authentication
+    - `password_reset_tokens` - Password reset functionality
+    - `sessions` - Session management
+    - `clientes` - Client management
+    - `ventas` - Sales orders
+    - `facturas` - Invoicing
+    - `mensajes` - Messaging system
+    - `cache` and `jobs` - Laravel system tables
+
+    <CodeGroup>
+    ```bash Verify Migrations
+    # Check the status of all migrations
+    php artisan migrate:status
+    ```
+
+    ```bash Rollback (if needed)
+    # Rollback the last batch of migrations
+    php artisan migrate:rollback
+    ```
+
+    ```bash Fresh Install (if needed)
+    # Drop all tables and re-run migrations (WARNING: Data loss!)
+    php artisan migrate:fresh
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Create Test User Account">
+    Create a test user account to access the dashboard:
+
+    ```bash
+    # Open Laravel Tinker (interactive REPL)
+    php artisan tinker
+    ```
+
+    ```php
+    # Create a new user in the database
+    \App\Models\User::create([
+        'name'     => 'Admin',
+        'email'    => 'admin@dashboard.com',
+        'password' => bcrypt('123456'),
+    ]);
+
+    # Exit Tinker
+    exit
+    ```
+
+    <Info>
+    You can create multiple users with different credentials for testing purposes.
+    </Info>
+
+    <Warning>
+    Always use strong passwords in production environments. This simple password is only for development.
+    </Warning>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Launch the Laravel development server:
+
+    ```bash
+    php artisan serve
+    ```
+
+    You should see output similar to:
+
+    ```
+    INFO  Server running on [http://127.0.0.1:8000].
+
+    Press Ctrl+C to stop the server
+    ```
+
+    <Tip>
+    To run the server on a different port, use: `php artisan serve --port=8080`
+    </Tip>
+  </Step>
+
+  <Step title="Access the Dashboard">
+    Open your web browser and navigate to:
+
+    ```
+    http://127.0.0.1:8000
+    ```
+
+    Login with your test credentials:
+    - **Email:** `admin@dashboard.com`
+    - **Password:** `123456`
+
+    <Note>
+    You should see the login screen. After authentication, you'll be redirected to the main dashboard.
+    </Note>
+  </Step>
+</Steps>
+
+## Verify Installation
+
+To confirm everything is working correctly:
+
+### 1. Check Routes
+
+List all available routes:
+
+```bash
+php artisan route:list
+```
+
+You should see 11 routes including:
+- `GET /` → home
+- `POST /login` → login
+- `GET /dashboard` → dashboard
+- `GET /estadisticas` → estadisticas
+- And more...
+
+### 2. Test Authentication
+
+- Navigate to the login page
+- Enter your test credentials
+- Verify successful redirect to the dashboard
+- Test logout functionality
+
+### 3. Check Database Connection
+
+Verify tables were created:
+
+```bash
+psql -U postgres -d dashboard_db -c "\dt"
+```
+
+## Common Installation Issues
+
+<AccordionGroup>
+  <Accordion title="Migration Error: Connection Refused">
+    **Problem:** Cannot connect to PostgreSQL database.
+
+    **Solution:**
+    1. Verify PostgreSQL is running: `sudo systemctl status postgresql`
+    2. Check credentials in `.env` file
+    3. Ensure the database exists: `psql -U postgres -l`
+  </Accordion>
+
+  <Accordion title="Composer Install Fails">
+    **Problem:** Composer cannot install dependencies.
+
+    **Solution:**
+    1. Update Composer: `composer self-update`
+    2. Clear Composer cache: `composer clear-cache`
+    3. Check PHP version: `php --version` (must be 8.2+)
+  </Accordion>
+
+  <Accordion title="App Key Not Set">
+    **Problem:** "No application encryption key has been specified" error.
+
+    **Solution:**
+    Run `php artisan key:generate` to create the APP_KEY.
+  </Accordion>
+
+  <Accordion title="Permission Denied Errors">
+    **Problem:** Laravel cannot write to storage or cache directories.
+
+    **Solution:**
+    ```bash
+    # Set proper permissions
+    chmod -R 775 storage bootstrap/cache
+    chown -R $USER:www-data storage bootstrap/cache
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have Dashboard Laravel installed, explore the application:
+
+<CardGroup cols={2}>
+  <Card title="Configuration Guide" icon="gear" href="/configuration">
+    Learn how to configure environment settings and customize the application
+  </Card>
+  
+  <Card title="Project Structure" icon="folder-tree">
+    Understand the codebase organization and file structure
+  </Card>
+  
+  <Card title="Database Models" icon="database">
+    Explore Eloquent models and database relationships
+  </Card>
+  
+  <Card title="Development Workflow" icon="code">
+    Best practices for developing with Dashboard Laravel
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [Laravel 11 Documentation](https://laravel.com/docs/11.x)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Composer Documentation](https://getcomposer.org/doc/)

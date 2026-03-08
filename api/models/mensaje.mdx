@@ -1,0 +1,253 @@
+---
+title: "Mensaje Model"
+description: "Message model with read/unread tracking and customer relationship"
+---
+
+## Overview
+
+The `Mensaje` model represents messages or communications in the Dashboard Laravel application. Each message is associated with a customer and includes read/unread status tracking with automatic boolean casting.
+
+<Note>
+  The Mensaje model is ideal for customer communication tracking, support tickets, or notification systems with read status management.
+</Note>
+
+## Model Details
+
+### Namespace
+```php
+App\Models\Mensaje
+```
+
+### Extends
+```php
+Illuminate\Database\Eloquent\Model
+```
+
+### Traits
+- `HasFactory` - Enables model factory support for testing and seeding
+
+## Fillable Attributes
+
+The following attributes are mass assignable:
+
+<ParamField path="cliente_id" type="integer" required>
+  Foreign key reference to the Cliente model
+</ParamField>
+
+<ParamField path="contenido" type="text" required>
+  The message content or body text
+</ParamField>
+
+<ParamField path="tipo" type="string" required>
+  Message type classification:
+  - `consulta` - Customer inquiry
+  - `soporte` - Support request
+  - `notificacion` - System notification
+  - `reclamo` - Complaint or claim
+  - `otro` - Other message types
+</ParamField>
+
+<ParamField path="leido" type="boolean" default="false">
+  Read status of the message (automatically cast to boolean)
+</ParamField>
+
+## Attribute Casting
+
+The model automatically casts boolean attributes:
+
+<ResponseField name="leido" type="boolean">
+  Cast to boolean for proper true/false handling (instead of 0/1)
+</ResponseField>
+
+## Relationships
+
+### cliente() - Belongs To
+
+Each message belongs to a single customer.
+
+```php
+public function cliente()
+{
+    return $this->belongsTo(Cliente::class);
+}
+```
+
+<ResponseField name="cliente" type="Cliente">
+  The customer (Cliente) who sent or is associated with this message
+</ResponseField>
+
+**Usage:**
+```php
+$mensaje = Mensaje::find(1);
+$cliente = $mensaje->cliente; // Get the customer
+$nombreCliente = $mensaje->cliente->nombre . ' ' . $mensaje->cliente->apellido;
+$emailCliente = $mensaje->cliente->email;
+```
+
+## Database Configuration
+
+### Table Name
+```php
+'mensajes' // Laravel automatically pluralizes the model name
+```
+
+### Timestamps
+```php
+true // Uses created_at and updated_at timestamps
+```
+
+## Full Model Code
+
+<Expandable title="View Complete Mensaje Model Source Code">
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Mensaje extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'cliente_id',
+        'contenido',
+        'tipo',
+        'leido',
+    ];
+
+    protected $casts = [
+        'leido' => 'boolean',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+}
+```
+</Expandable>
+
+## Usage Examples
+
+### Creating a New Message
+```php
+use App\Models\Mensaje;
+
+$mensaje = Mensaje::create([
+    'cliente_id' => 1,
+    'contenido' => '¿Cuál es el estado de mi pedido #ORD-2026-001?',
+    'tipo' => 'consulta',
+    'leido' => false,
+]);
+```
+
+### Working with Boolean Casting
+```php
+$mensaje = Mensaje::find(1);
+
+// Boolean casting works seamlessly
+if ($mensaje->leido === true) {
+    echo "Message has been read";
+} else {
+    echo "Unread message";
+}
+
+// Mark as read
+$mensaje->update(['leido' => true]);
+
+// Toggle read status
+$mensaje->update(['leido' => !$mensaje->leido]);
+```
+
+### Accessing Message Relationships
+```php
+// Eager load customer relationship
+$mensaje = Mensaje::with('cliente')->find(1);
+
+// Access customer information
+echo "Message from: " . $mensaje->cliente->nombre;
+echo "Customer email: " . $mensaje->cliente->email;
+echo "Customer segment: " . $mensaje->cliente->segmento;
+```
+
+### Querying Messages
+```php
+// Get all unread messages
+$mensajesNoLeidos = Mensaje::where('leido', false)->get();
+
+// Get unread messages with customer info
+$mensajesPendientes = Mensaje::with('cliente')
+    ->where('leido', false)
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+// Get messages by type
+$consultas = Mensaje::where('tipo', 'consulta')->get();
+$soportes = Mensaje::where('tipo', 'soporte')
+    ->where('leido', false)
+    ->get();
+
+// Get messages for specific customer
+$mensajesCliente = Mensaje::where('cliente_id', 1)
+    ->orderBy('created_at', 'desc')
+    ->get();
+```
+
+### Marking Messages as Read
+```php
+// Mark single message as read
+$mensaje = Mensaje::find(1);
+$mensaje->update(['leido' => true]);
+
+// Mark all messages from a customer as read
+Mensaje::where('cliente_id', 1)
+    ->where('leido', false)
+    ->update(['leido' => true]);
+
+// Mark all unread messages older than 7 days as read
+Mensaje::where('leido', false)
+    ->where('created_at', '<', now()->subDays(7))
+    ->update(['leido' => true]);
+```
+
+### Message Statistics
+```php
+// Count unread messages
+$unreadCount = Mensaje::where('leido', false)->count();
+
+// Count messages by type
+$consultasCount = Mensaje::where('tipo', 'consulta')->count();
+$soporteCount = Mensaje::where('tipo', 'soporte')
+    ->where('leido', false)
+    ->count();
+
+// Get messages grouped by type
+$mensajesPorTipo = Mensaje::selectRaw('tipo, COUNT(*) as total')
+    ->groupBy('tipo')
+    ->get();
+```
+
+### Advanced Queries
+```php
+// Get unread support messages for premium customers
+$mensajesPremium = Mensaje::with('cliente')
+    ->where('leido', false)
+    ->where('tipo', 'soporte')
+    ->whereHas('cliente', function($query) {
+        $query->where('segmento', 'premium');
+    })
+    ->orderBy('created_at', 'asc')
+    ->get();
+
+// Get latest message for each customer
+$latestMessages = Mensaje::with('cliente')
+    ->whereIn('id', function($query) {
+        $query->selectRaw('MAX(id)')
+            ->from('mensajes')
+            ->groupBy('cliente_id');
+    })
+    ->get();
+```

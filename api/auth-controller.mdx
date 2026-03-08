@@ -1,0 +1,449 @@
+---
+title: 'AuthController'
+description: 'Authentication controller handling user login, registration, and logout functionality'
+---
+
+## Overview
+
+The `AuthController` manages all authentication-related operations in the Dashboard Laravel application. It handles user login, registration, logout, and provides view methods for authentication forms.
+
+**Namespace:** `App\Http\Controllers`
+
+**Extends:** `Controller`
+
+## Methods
+
+### showLogin()
+
+Displays the login form view. Redirects authenticated users to the dashboard.
+
+```php
+public function showLogin()
+```
+
+**Return Type:** `\Illuminate\Http\RedirectResponse|\Illuminate\View\View`
+
+**Behavior:**
+- If user is already authenticated (`Auth::check()`), redirects to `/dashboard`
+- Otherwise, returns the `home` view with the login form
+
+**Example:**
+```php
+// Route definition
+Route::get('/login', [AuthController::class, 'showLogin']);
+```
+
+**Response:**
+<ResponseField name="redirect" type="string">
+  Redirects to `/dashboard` if already authenticated
+</ResponseField>
+
+<ResponseField name="view" type="view">
+  Returns `home` view for unauthenticated users
+</ResponseField>
+
+---
+
+### login()
+
+Processes user login with credentials validation.
+
+```php
+public function login(Request $request)
+```
+
+**Parameters:**
+
+<ParamField path="email" type="string" required>
+  User's email address. Must be a valid email format.
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  User's password. Minimum 6 characters required.
+</ParamField>
+
+<ParamField path="remember" type="boolean">
+  Optional "Remember Me" checkbox to persist authentication.
+</ParamField>
+
+**Validation Rules:**
+
+```php
+[
+    'email'    => 'required|email',
+    'password' => 'required|min:6',
+]
+```
+
+**Return Type:** `\Illuminate\Http\RedirectResponse`
+
+**Implementation:**
+
+```php
+public function login(Request $request)
+{
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required|min:6',
+    ], [
+        'email.required'    => 'El correo es obligatorio.',
+        'email.email'       => 'Ingresa un correo válido.',
+        'password.required' => 'La contraseña es obligatoria.',
+        'password.min'      => 'Mínimo 6 caracteres.',
+    ]);
+
+    if (Auth::attempt($request->only('email', 'password'), $request->has('remember'))) {
+        $request->session()->regenerate();
+        return redirect('/dashboard');
+    }
+
+    return back()->withErrors(['email' => 'Credenciales incorrectas.'])->withInput();
+}
+```
+
+**Behavior:**
+1. Validates email and password fields
+2. Attempts authentication using `Auth::attempt()`
+3. On success:
+   - Regenerates session for security
+   - Redirects to `/dashboard`
+4. On failure:
+   - Returns back with error message
+   - Preserves input except password
+
+<Note>
+  Session regeneration (`$request->session()->regenerate()`) prevents session fixation attacks.
+</Note>
+
+**Responses:**
+
+<Tabs>
+  <Tab title="Success">
+    <ResponseField name="redirect" type="string">
+      Redirects to `/dashboard` on successful authentication
+    </ResponseField>
+  </Tab>
+  
+  <Tab title="Validation Error">
+    <ResponseField name="errors" type="array">
+      Array of validation error messages in Spanish
+    </ResponseField>
+    
+    Example:
+    ```json
+    {
+      "email": ["El correo es obligatorio."],
+      "password": ["Mínimo 6 caracteres."]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Authentication Failed">
+    <ResponseField name="errors" type="array">
+      Invalid credentials error message
+    </ResponseField>
+    
+    ```json
+    {
+      "email": ["Credenciales incorrectas."]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+### showRegister()
+
+Displays the registration form view. Redirects authenticated users to the dashboard.
+
+```php
+public function showRegister()
+```
+
+**Return Type:** `\Illuminate\Http\RedirectResponse|\Illuminate\View\View`
+
+**Behavior:**
+- If user is already authenticated, redirects to `/dashboard`
+- Otherwise, returns the `signup` view with the registration form
+
+**Example:**
+```php
+// Route definition
+Route::get('/register', [AuthController::class, 'showRegister']);
+```
+
+---
+
+### register()
+
+Processes new user registration with validation and automatic login.
+
+```php
+public function register(Request $request)
+```
+
+**Parameters:**
+
+<ParamField path="name" type="string" required>
+  User's full name. Maximum 255 characters.
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  User's email address. Must be unique in the users table.
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  User's password. Minimum 6 characters. Must be confirmed.
+</ParamField>
+
+<ParamField path="password_confirmation" type="string" required>
+  Password confirmation field. Must match password.
+</ParamField>
+
+**Validation Rules:**
+
+```php
+[
+    'name'     => 'required|string|max:255',
+    'email'    => 'required|email|unique:users,email',
+    'password' => 'required|min:6|confirmed',
+]
+```
+
+**Return Type:** `\Illuminate\Http\RedirectResponse`
+
+**Implementation:**
+
+```php
+public function register(Request $request)
+{
+    $request->validate([
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|email|unique:users,email',
+        'password' => 'required|min:6|confirmed',
+    ], [
+        'name.required'      => 'El nombre es obligatorio.',
+        'email.required'     => 'El correo es obligatorio.',
+        'email.unique'       => 'Este correo ya está registrado.',
+        'password.min'       => 'Mínimo 6 caracteres.',
+        'password.confirmed' => 'Las contraseñas no coinciden.',
+    ]);
+
+    $user = User::create([
+        'name'     => $request->name,
+        'email'    => $request->email,
+        'password' => Hash::make($request->password),
+    ]);
+
+    Auth::login($user);
+    return redirect('/dashboard');
+}
+```
+
+**Behavior:**
+1. Validates all registration fields
+2. Creates new user with hashed password (`Hash::make()`)
+3. Automatically logs in the new user
+4. Redirects to `/dashboard`
+
+<Note>
+  Passwords are hashed using bcrypt via `Hash::make()` before storage. Never store plain-text passwords.
+</Note>
+
+**Security Features:**
+- Email uniqueness validation prevents duplicate accounts
+- Password confirmation (`confirmed` rule) requires matching `password_confirmation` field
+- Bcrypt hashing for secure password storage
+- Automatic login after registration for better UX
+
+**Response:**
+
+<ResponseField name="redirect" type="string">
+  Redirects to `/dashboard` after successful registration
+</ResponseField>
+
+<ResponseField name="errors" type="array">
+  Validation errors if registration fails
+</ResponseField>
+
+---
+
+### logout()
+
+Logs out the authenticated user and invalidates their session.
+
+```php
+public function logout(Request $request)
+```
+
+**Parameters:**
+
+<ParamField path="request" type="Request" required>
+  The HTTP request instance (injected by Laravel)
+</ParamField>
+
+**Return Type:** `\Illuminate\Http\RedirectResponse`
+
+**Implementation:**
+
+```php
+public function logout(Request $request)
+{
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/');
+}
+```
+
+**Behavior:**
+1. Logs out the user (`Auth::logout()`)
+2. Invalidates the current session
+3. Regenerates CSRF token
+4. Redirects to home page (`/`)
+
+<Note>
+  This method implements the recommended Laravel logout flow including session invalidation and CSRF token regeneration to prevent security vulnerabilities.
+</Note>
+
+**Security Features:**
+- `Auth::logout()` - Clears authentication
+- `session()->invalidate()` - Destroys session data
+- `session()->regenerateToken()` - Prevents CSRF attacks after logout
+
+**Response:**
+
+<ResponseField name="redirect" type="string">
+  Redirects to `/` (home page)
+</ResponseField>
+
+---
+
+## Full Source Code
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+class AuthController extends Controller
+{
+    public function showLogin()
+    {
+        if (Auth::check()) return redirect('/dashboard');
+        return view('home');
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|min:6',
+        ], [
+            'email.required'    => 'El correo es obligatorio.',
+            'email.email'       => 'Ingresa un correo válido.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min'      => 'Mínimo 6 caracteres.',
+        ]);
+
+        if (Auth::attempt($request->only('email', 'password'), $request->has('remember'))) {
+            $request->session()->regenerate();
+            return redirect('/dashboard');
+        }
+
+        return back()->withErrors(['email' => 'Credenciales incorrectas.'])->withInput();
+    }
+
+    public function showRegister()
+    {
+        if (Auth::check()) return redirect('/dashboard');
+        return view('signup');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'name.required'      => 'El nombre es obligatorio.',
+            'email.required'     => 'El correo es obligatorio.',
+            'email.unique'       => 'Este correo ya está registrado.',
+            'password.min'       => 'Mínimo 6 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+        ]);
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        Auth::login($user);
+        return redirect('/dashboard');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/');
+    }
+}
+```
+
+## Dependencies
+
+**Facades:**
+- `Illuminate\Support\Facades\Auth` - Authentication
+- `Illuminate\Support\Facades\Hash` - Password hashing
+
+**Models:**
+- `App\Models\User` - User model
+
+**Classes:**
+- `Illuminate\Http\Request` - HTTP request handling
+
+## Usage Example
+
+### Route Registration
+
+```php
+use App\Http\Controllers\AuthController;
+
+// Display forms
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+
+// Process forms
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+```
+
+### AJAX Login Example
+
+```javascript
+fetch('/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+  },
+  body: JSON.stringify({
+    email: 'user@example.com',
+    password: 'password123',
+    remember: true
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data));
+```

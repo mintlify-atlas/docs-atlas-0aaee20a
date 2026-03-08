@@ -1,0 +1,426 @@
+---
+title: 'Invoices Module'
+description: 'Complete invoice management system with payment tracking, due date monitoring, and client integration'
+---
+
+## Overview
+
+The Invoices module provides comprehensive billing and payment management. Track invoice statuses, monitor due dates, and manage payment collections with integrated client and sales data.
+
+<CardGroup cols={2}>
+  <Card title="Payment Tracking" icon="dollar-sign">
+    Monitor invoice statuses: Paid, Pending, and Overdue
+  </Card>
+  <Card title="Due Date Management" icon="calendar">
+    Automatic tracking of emission and due dates
+  </Card>
+  <Card title="Client Integration" icon="user-tie">
+    Link invoices to client records and sales transactions
+  </Card>
+  <Card title="Financial Reports" icon="chart-line">
+    Monthly revenue tracking and payment analytics
+  </Card>
+</CardGroup>
+
+## Factura Model
+
+The `Factura` model manages all invoice operations:
+
+```php app/Models/Factura.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Factura extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'numero_factura',
+        'cliente_id',
+        'venta_id',
+        'concepto',
+        'monto',
+        'fecha_emision',
+        'fecha_vencimiento',
+        'estado',
+    ];
+
+    protected $casts = [
+        'fecha_emision'     => 'date',
+        'fecha_vencimiento' => 'date',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class);
+    }
+}
+```
+
+### Model Relationships
+
+<Tabs>
+  <Tab title="Cliente Relationship">
+    Each invoice belongs to a client (`belongsTo`):
+    
+    ```php
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $factura = Factura::find(1);
+    $cliente = $factura->cliente;
+    echo $cliente->nombre . ' ' . $cliente->apellido;
+    ```
+  </Tab>
+  
+  <Tab title="Venta Relationship">
+    Each invoice can belong to a sale (`belongsTo`, nullable):
+    
+    ```php
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $factura = Factura::find(1);
+    if ($factura->venta) {
+        echo $factura->venta->numero_orden;
+    }
+    ```
+    
+    <Note>
+    The `venta_id` is nullable, allowing for invoices not tied to specific sales.
+    </Note>
+  </Tab>
+</Tabs>
+
+### Date Casting
+
+The model automatically casts date fields to Carbon instances:
+
+```php
+protected $casts = [
+    'fecha_emision'     => 'date',
+    'fecha_vencimiento' => 'date',
+];
+```
+
+This allows easy date manipulation:
+
+```php
+$factura = Factura::find(1);
+
+// Access as Carbon instance
+echo $factura->fecha_emision->format('d/m/Y');
+echo $factura->fecha_vencimiento->diffForHumans();
+
+// Check if overdue
+$is_overdue = $factura->fecha_vencimiento->isPast() && $factura->estado !== 'pagada';
+```
+
+## Database Schema
+
+The `facturas` table structure from the migration:
+
+```php database/migrations/2026_03_03_191710_create_facturas_table.php
+Schema::create('facturas', function (Blueprint $table) {
+    $table->id();
+    $table->string('numero_factura')->unique();
+    $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+    $table->foreignId('venta_id')->nullable()->constrained('ventas')->onDelete('set null');
+    $table->string('concepto');
+    $table->decimal('monto', 10, 2);
+    $table->date('fecha_emision');
+    $table->date('fecha_vencimiento');
+    $table->enum('estado', ['pagada', 'pendiente', 'vencida'])->default('pendiente');
+    $table->timestamps();
+});
+```
+
+### Table Fields
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | bigint | Primary key | Unique invoice identifier |
+| `numero_factura` | string | Unique | Invoice number (e.g., FAC-2024-001) |
+| `cliente_id` | foreignId | Required | Reference to clients table |
+| `venta_id` | foreignId | Nullable | Optional reference to sales table |
+| `concepto` | string | Required | Invoice description/concept |
+| `monto` | decimal(10,2) | Required | Invoice amount |
+| `fecha_emision` | date | Required | Emission/issue date |
+| `fecha_vencimiento` | date | Required | Due date |
+| `estado` | enum | Default: 'pendiente' | Payment status |
+| `timestamps` | timestamps | Auto | created_at, updated_at |
+
+### Foreign Key Constraints
+
+<Info>
+**Cascade Deletion**: When a client is deleted, all their invoices are automatically removed.
+
+**Set Null**: When a sale is deleted, the `venta_id` in related invoices is set to `null`, preserving the invoice record.
+</Info>
+
+## Payment Statuses
+
+<Tabs>
+  <Tab title="Pagada">
+    **Paid Invoices**
+    
+    Invoices that have been fully paid by the client.
+    
+    ```php
+    Factura::where('estado', 'pagada')->get();
+    ```
+    
+    **Dashboard Metrics:**
+    - Count: 186 invoices
+    - Total: $42,300
+  </Tab>
+  
+  <Tab title="Pendiente">
+    **Pending Invoices**
+    
+    Invoices awaiting payment that are not yet overdue. This is the default status.
+    
+    ```php
+    Factura::where('estado', 'pendiente')->get();
+    ```
+    
+    **Dashboard Metrics:**
+    - Count: 34 invoices
+    - Total: $8,900 pending
+  </Tab>
+  
+  <Tab title="Vencida">
+    **Overdue Invoices**
+    
+    Invoices that have passed their due date without payment.
+    
+    ```php
+    Factura::where('estado', 'vencida')->get();
+    ```
+    
+    **Dashboard Metrics:**
+    - Count: 12 invoices
+    - Total: $3,200 overdue
+    
+    <Note>
+    Overdue invoices require immediate attention for collection.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Invoice View Features
+
+The invoice interface (`facturas.blade.php`) provides:
+
+### Dashboard Cards
+
+<CardGroup cols={4}>
+  <Card title="Paid" icon="check-circle">
+    186 invoices
+    $42,300 total
+  </Card>
+  <Card title="Pending" icon="clock">
+    34 invoices
+    $8,900 pending
+  </Card>
+  <Card title="Overdue" icon="times-circle">
+    12 invoices
+    $3,200 in arrears
+  </Card>
+  <Card title="Total Issued" icon="file-alt">
+    232 invoices
+    This month
+  </Card>
+</CardGroup>
+
+### Analytics Charts
+
+<CardGroup cols={2}>
+  <Card title="Monthly Revenue Chart" icon="chart-bar">
+    Stacked bar chart showing paid vs pending amounts by month
+    - Green bars: Paid invoices
+    - Yellow bars: Pending invoices
+  </Card>
+  <Card title="Invoice Status Chart" icon="chart-pie">
+    Doughnut chart displaying status distribution:
+    - Paid: 186 (80%)
+    - Pending: 34 (15%)
+    - Overdue: 12 (5%)
+  </Card>
+</CardGroup>
+
+### Invoice Management Table
+
+The main invoice table displays:
+
+- Invoice number (FAC-2024-XXX)
+- Client name
+- Invoice concept/description
+- Amount (formatted currency)
+- Emission date
+- Due date
+- Status badge (color-coded)
+- Action buttons (View, Download PDF)
+
+<Info>
+The interface includes search functionality and status filtering for efficient invoice management.
+</Info>
+
+## Usage Examples
+
+### Creating a New Invoice
+
+```php
+use App\Models\Factura;
+use Carbon\Carbon;
+
+$factura = Factura::create([
+    'numero_factura' => 'FAC-2024-006',
+    'cliente_id' => 1,
+    'venta_id' => 5,
+    'concepto' => 'Laptop Pro x1',
+    'monto' => 1500.00,
+    'fecha_emision' => Carbon::now(),
+    'fecha_vencimiento' => Carbon::now()->addDays(15),
+    'estado' => 'pendiente'
+]);
+```
+
+### Querying Invoices with Related Data
+
+```php
+// Get all invoices with client and sale data
+$facturas = Factura::with(['cliente', 'venta'])->get();
+
+foreach ($facturas as $factura) {
+    echo $factura->numero_factura;
+    echo $factura->cliente->nombre;
+    if ($factura->venta) {
+        echo $factura->venta->numero_orden;
+    }
+}
+```
+
+### Marking Invoice as Paid
+
+```php
+$factura = Factura::find(1);
+$factura->estado = 'pagada';
+$factura->save();
+```
+
+### Finding Overdue Invoices
+
+```php
+use Carbon\Carbon;
+
+// Automatically mark overdue invoices
+$overdue = Factura::where('estado', 'pendiente')
+    ->where('fecha_vencimiento', '<', Carbon::now())
+    ->update(['estado' => 'vencida']);
+```
+
+### Client Invoice Summary
+
+```php
+$cliente_id = 1;
+
+$total_pagadas = Factura::where('cliente_id', $cliente_id)
+    ->where('estado', 'pagada')
+    ->sum('monto');
+
+$total_pendiente = Factura::where('cliente_id', $cliente_id)
+    ->whereIn('estado', ['pendiente', 'vencida'])
+    ->sum('monto');
+```
+
+### Monthly Revenue Report
+
+```php
+use Carbon\Carbon;
+
+$mes_actual = Carbon::now()->month;
+
+$ingresos = Factura::whereMonth('fecha_emision', $mes_actual)
+    ->where('estado', 'pagada')
+    ->sum('monto');
+
+$pendiente = Factura::whereMonth('fecha_emision', $mes_actual)
+    ->where('estado', 'pendiente')
+    ->sum('monto');
+```
+
+### Invoices Due This Week
+
+```php
+use Carbon\Carbon;
+
+$facturas_vencer = Factura::where('estado', 'pendiente')
+    ->whereBetween('fecha_vencimiento', [
+        Carbon::now(),
+        Carbon::now()->addWeek()
+    ])
+    ->with('cliente')
+    ->get();
+```
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="Unique Invoice Numbers" icon="hashtag">
+    Each invoice has a unique identifier (FAC-2024-XXX)
+  </Card>
+  <Card title="Client Integration" icon="user">
+    Direct relationship with client records
+  </Card>
+  <Card title="Optional Sales Link" icon="shopping-cart">
+    Nullable foreign key to sales table
+  </Card>
+  <Card title="Decimal Precision" icon="dollar-sign">
+    Amounts stored with 2 decimal precision
+  </Card>
+  <Card title="Date Casting" icon="calendar">
+    Automatic Carbon instance conversion for dates
+  </Card>
+  <Card title="Three Payment States" icon="list">
+    Paid, Pending, and Overdue status tracking
+  </Card>
+  <Card title="Cascade Deletion" icon="trash">
+    Auto-delete when client is removed
+  </Card>
+  <Card title="Set Null on Sale Delete" icon="link-slash">
+    Preserve invoice when sale is deleted
+  </Card>
+  <Card title="Timestamp Tracking" icon="clock">
+    Automatic created_at and updated_at timestamps
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Note>
+**Automatic Status Updates**: Consider implementing a scheduled task to automatically update pending invoices to 'vencida' when they pass their due date.
+
+**Payment Reminders**: Send automated reminders to clients with pending invoices approaching their due date.
+
+**PDF Generation**: Integrate PDF generation for downloadable invoice documents.
+</Note>

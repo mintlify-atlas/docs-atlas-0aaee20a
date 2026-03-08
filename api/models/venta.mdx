@@ -1,0 +1,210 @@
+---
+title: "Venta Model"
+description: "Sales order model with customer relationship and order status tracking"
+---
+
+## Overview
+
+The `Venta` model represents sales orders in the Dashboard Laravel application. Each sale is associated with a customer and can have a corresponding invoice. The model tracks order numbers, products, totals, and order status.
+
+<Note>
+  The Venta model serves as the core transactional record, linking customers to their purchases and associated invoices.
+</Note>
+
+## Model Details
+
+### Namespace
+```php
+App\Models\Venta
+```
+
+### Extends
+```php
+Illuminate\Database\Eloquent\Model
+```
+
+### Traits
+- `HasFactory` - Enables model factory support for testing and seeding
+
+## Fillable Attributes
+
+The following attributes are mass assignable:
+
+<ParamField path="numero_orden" type="string" required>
+  Unique order number identifier for the sale
+</ParamField>
+
+<ParamField path="cliente_id" type="integer" required>
+  Foreign key reference to the Cliente model
+</ParamField>
+
+<ParamField path="producto" type="string" required>
+  Product name or description for this sale
+</ParamField>
+
+<ParamField path="total" type="decimal" required>
+  Total amount of the sale
+</ParamField>
+
+<ParamField path="estado" type="string" required>
+  Current status of the order:
+  - `pendiente` - Order pending
+  - `procesando` - Order being processed
+  - `completado` - Order completed
+  - `cancelado` - Order cancelled
+</ParamField>
+
+## Relationships
+
+### cliente() - Belongs To
+
+Each sale belongs to a single customer.
+
+```php
+public function cliente()
+{
+    return $this->belongsTo(Cliente::class);
+}
+```
+
+<ResponseField name="cliente" type="Cliente">
+  The customer (Cliente) who made this purchase
+</ResponseField>
+
+**Usage:**
+```php
+$venta = Venta::find(1);
+$cliente = $venta->cliente; // Get the customer
+$nombreCliente = $venta->cliente->nombre . ' ' . $venta->cliente->apellido;
+```
+
+### factura() - Has One
+
+A sale can have one associated invoice.
+
+```php
+public function factura()
+{
+    return $this->hasOne(Factura::class);
+}
+```
+
+<ResponseField name="factura" type="Factura">
+  The invoice (Factura) generated for this sale
+</ResponseField>
+
+**Usage:**
+```php
+$venta = Venta::find(1);
+$factura = $venta->factura; // Get the invoice
+
+if ($venta->factura) {
+    $numeroFactura = $venta->factura->numero_factura;
+}
+```
+
+## Database Configuration
+
+### Table Name
+```php
+'ventas' // Laravel automatically pluralizes the model name
+```
+
+### Timestamps
+```php
+true // Uses created_at and updated_at timestamps
+```
+
+## Full Model Code
+
+<Expandable title="View Complete Venta Model Source Code">
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Venta extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'numero_orden',
+        'cliente_id',
+        'producto',
+        'total',
+        'estado',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function factura()
+    {
+        return $this->hasOne(Factura::class);
+    }
+}
+```
+</Expandable>
+
+## Usage Examples
+
+### Creating a New Sale
+```php
+use App\Models\Venta;
+
+$venta = Venta::create([
+    'numero_orden' => 'ORD-2026-001',
+    'cliente_id' => 1,
+    'producto' => 'Laptop Dell XPS 15',
+    'total' => 1299.99,
+    'estado' => 'pendiente',
+]);
+```
+
+### Accessing Sale Relationships
+```php
+// Eager load relationships
+$venta = Venta::with(['cliente', 'factura'])->find(1);
+
+// Access customer information
+echo $venta->cliente->nombre; // Customer first name
+echo $venta->cliente->email; // Customer email
+
+// Check if invoice exists
+if ($venta->factura) {
+    echo "Invoice: " . $venta->factura->numero_factura;
+}
+```
+
+### Querying Sales by Status
+```php
+// Get all completed sales
+$completadas = Venta::where('estado', 'completado')->get();
+
+// Get pending sales with customer info
+$pendientes = Venta::with('cliente')
+    ->where('estado', 'pendiente')
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+// Calculate total sales for a period
+$totalVentas = Venta::where('estado', 'completado')
+    ->whereDate('created_at', '>=', '2026-01-01')
+    ->sum('total');
+```
+
+### Updating Sale Status
+```php
+$venta = Venta::find(1);
+$venta->update(['estado' => 'completado']);
+
+// Or using mass update
+Venta::where('estado', 'pendiente')
+    ->where('created_at', '<', now()->subDays(7))
+    ->update(['estado' => 'cancelado']);
+```

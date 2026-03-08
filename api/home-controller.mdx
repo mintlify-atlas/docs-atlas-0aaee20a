@@ -1,0 +1,311 @@
+---
+title: 'HomeController'
+description: 'Home controller extending Laravel base Controller class'
+---
+
+## Overview
+
+The `HomeController` is a minimal controller in the Dashboard Laravel application. It extends the base `Controller` class and is prepared for home page and general application routes.
+
+**Namespace:** `App\Http\Controllers`
+
+**Extends:** `Controller`
+
+## Controller Structure
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class HomeController extends Controller
+{
+    //
+}
+```
+
+## Purpose
+
+This controller serves as a placeholder for home-related routes and actions. It can be extended to handle:
+
+- Dashboard home page rendering
+- Application landing pages
+- General informational routes
+- Public-facing content
+
+## Base Controller
+
+The `HomeController` inherits from Laravel's base `Controller` class:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+abstract class Controller
+{
+    //
+}
+```
+
+<Note>
+  In Laravel 11, the base `Controller` class is intentionally minimal. Previous versions included traits like `AuthorizesRequests`, `ValidatesRequests`, but Laravel 11 simplifies this structure.
+</Note>
+
+## Usage Examples
+
+### Adding Methods
+
+You can extend this controller with custom methods:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class HomeController extends Controller
+{
+    /**
+     * Display the dashboard home page
+     */
+    public function index()
+    {
+        return view('dashboard');
+    }
+    
+    /**
+     * Display application statistics
+     */
+    public function stats()
+    {
+        $users = \App\Models\User::count();
+        
+        return view('stats', compact('users'));
+    }
+}
+```
+
+### Route Registration
+
+```php
+use App\Http\Controllers\HomeController;
+
+Route::get('/dashboard', [HomeController::class, 'index'])
+    ->middleware('auth')
+    ->name('dashboard');
+
+Route::get('/stats', [HomeController::class, 'stats'])
+    ->middleware('auth')
+    ->name('stats');
+```
+
+## Middleware
+
+Controllers in Laravel 11 can apply middleware in routes or using the `middleware()` method:
+
+### In Routes
+
+```php
+Route::get('/dashboard', [HomeController::class, 'index'])
+    ->middleware(['auth', 'verified']);
+```
+
+### In Constructor
+
+```php
+class HomeController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('verified')->only('stats');
+    }
+    
+    public function index()
+    {
+        return view('dashboard');
+    }
+    
+    public function stats()
+    {
+        // Only verified users can access
+        return view('stats');
+    }
+}
+```
+
+## Common Patterns
+
+### Dependency Injection
+
+Inject services or repositories through the constructor:
+
+```php
+class HomeController extends Controller
+{
+    protected $userRepository;
+    
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+    
+    public function index()
+    {
+        $users = $this->userRepository->getActive();
+        return view('dashboard', compact('users'));
+    }
+}
+```
+
+### Resource Methods
+
+Implement RESTful resource methods:
+
+```php
+class HomeController extends Controller
+{
+    // Display a listing
+    public function index()
+    {
+        return view('home.index');
+    }
+    
+    // Show the form for creating a new resource
+    public function create()
+    {
+        return view('home.create');
+    }
+    
+    // Store a newly created resource
+    public function store(Request $request)
+    {
+        // Validation and storage logic
+    }
+    
+    // Display the specified resource
+    public function show($id)
+    {
+        return view('home.show', compact('id'));
+    }
+}
+```
+
+### Returning JSON Responses
+
+```php
+class HomeController extends Controller
+{
+    public function apiStats()
+    {
+        return response()->json([
+            'users' => User::count(),
+            'posts' => Post::count(),
+            'status' => 'active'
+        ]);
+    }
+}
+```
+
+## Available Methods (Inherited)
+
+While the base `Controller` class is minimal, you have access to all helper methods provided by Laravel:
+
+### Response Helpers
+
+```php
+// Return view
+return view('home');
+
+// Return JSON
+return response()->json(['status' => 'success']);
+
+// Return redirect
+return redirect('/dashboard');
+
+// Return with data
+return response()->view('home', $data, 200);
+```
+
+### Validation
+
+```php
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'title' => 'required|max:255',
+        'content' => 'required',
+    ]);
+    
+    // Use validated data
+}
+```
+
+### Authorization
+
+```php
+public function edit($id)
+{
+    $post = Post::findOrFail($id);
+    
+    $this->authorize('update', $post);
+    
+    return view('posts.edit', compact('post'));
+}
+```
+
+## Best Practices
+
+<Note>
+  Keep controllers thin by moving business logic to service classes, repositories, or actions. Controllers should primarily handle HTTP concerns.
+</Note>
+
+### Good Example (Thin Controller)
+
+```php
+class HomeController extends Controller
+{
+    public function __construct(
+        protected DashboardService $dashboardService
+    ) {}
+    
+    public function index()
+    {
+        $data = $this->dashboardService->getDashboardData();
+        return view('dashboard', $data);
+    }
+}
+```
+
+### Avoid (Fat Controller)
+
+```php
+class HomeController extends Controller
+{
+    public function index()
+    {
+        // Don't put complex business logic here
+        $users = User::where('active', true)
+            ->whereHas('posts', function($q) {
+                $q->where('published', true);
+            })
+            ->with('profile', 'settings')
+            ->get()
+            ->map(function($user) {
+                // Complex transformations
+            });
+            
+        return view('dashboard', compact('users'));
+    }
+}
+```
+
+## Related Documentation
+
+- [AuthController](/api/auth-controller) - Authentication controller
+- [Laravel Controllers](https://laravel.com/docs/11.x/controllers) - Official documentation
+- [Laravel Routing](https://laravel.com/docs/11.x/routing) - Route definitions

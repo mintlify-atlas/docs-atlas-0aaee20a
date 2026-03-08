@@ -1,0 +1,165 @@
+---
+title: "User Model"
+description: "Laravel authentication user model with factory support and notifications"
+---
+
+## Overview
+
+The `User` model extends Laravel's `Authenticatable` class and serves as the primary authentication model for the Dashboard Laravel application. It includes support for user factories and notifications out of the box.
+
+<Note>
+  This model uses Laravel 11's standard authentication implementation with the `HasFactory` and `Notifiable` traits.
+</Note>
+
+## Model Details
+
+### Namespace
+```php
+App\Models\User
+```
+
+### Extends
+```php
+Illuminate\Foundation\Auth\User as Authenticatable
+```
+
+### Traits
+- `HasFactory` - Enables model factory support for testing and seeding
+- `Notifiable` - Enables notification sending capabilities
+
+## Fillable Attributes
+
+The following attributes are mass assignable:
+
+<ParamField path="name" type="string" required>
+  The user's full name
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  The user's email address (used for authentication)
+</ParamField>
+
+<ParamField path="password" type="string" required>
+  The user's hashed password
+</ParamField>
+
+## Hidden Attributes
+
+The following attributes are hidden from JSON serialization for security:
+
+<ResponseField name="password" type="string">
+  Hidden from array/JSON serialization
+</ResponseField>
+
+<ResponseField name="remember_token" type="string">
+  Hidden from array/JSON serialization
+</ResponseField>
+
+## Attribute Casting
+
+The model automatically casts the following attributes:
+
+<ResponseField name="email_verified_at" type="datetime">
+  Cast to Carbon datetime instance for email verification timestamp
+</ResponseField>
+
+<ResponseField name="password" type="hashed">
+  Automatically hashed when set, ensuring secure password storage
+</ResponseField>
+
+## Database Configuration
+
+### Table Name
+```php
+'users' // Default Laravel users table
+```
+
+### Timestamps
+```php
+true // Uses created_at and updated_at timestamps
+```
+
+## Full Model Code
+
+<Expandable title="View Complete User Model Source Code">
+```php
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}
+```
+</Expandable>
+
+## Usage Examples
+
+### Creating a New User
+```php
+use App\Models\User;
+
+$user = User::create([
+    'name' => 'John Doe',
+    'email' => 'john@example.com',
+    'password' => 'secret123', // Automatically hashed
+]);
+```
+
+### Authenticating a User
+```php
+use Illuminate\Support\Facades\Auth;
+
+if (Auth::attempt(['email' => $email, 'password' => $password])) {
+    // Authentication successful
+    $user = Auth::user();
+}
+```
+
+### Sending Notifications
+```php
+use App\Notifications\WelcomeNotification;
+
+$user->notify(new WelcomeNotification());
+```

@@ -1,0 +1,294 @@
+---
+title: 'Authentication Routes'
+description: 'Authentication and user management routes in Dashboard Laravel'
+---
+
+## Overview
+
+Dashboard Laravel handles all authentication through the `AuthController`. The authentication system includes login, registration, and logout functionality.
+
+## Authentication Routes
+
+| Method | Path | Route Name | Controller Method | Purpose |
+|--------|------|------------|-------------------|----------|
+| GET | `/` | home | showLogin | Display login form |
+| POST | `/login` | login | login | Process login |
+| POST | `/logout` | logout | logout | Process logout |
+| GET | `/signup` | signup | showRegister | Display registration form |
+| POST | `/signup` | register | register | Process registration |
+
+## Route Definitions
+
+All authentication routes are defined in `routes/web.php` and handled by the `AuthController`:
+
+```php
+use App\Http\Controllers\AuthController;
+
+Route::get('/',        [AuthController::class, 'showLogin'])->name('home');
+Route::post('/login',  [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/signup',  [AuthController::class, 'showRegister'])->name('signup');
+Route::post('/signup', [AuthController::class, 'register'])->name('register');
+```
+
+## Login Routes
+
+<Tabs>
+  <Tab title="Show Login Form">
+    <ParamField path="/" type="GET" route="home">
+      Displays the login page for users to authenticate
+    </ParamField>
+
+    ```php
+    Route::get('/', [AuthController::class, 'showLogin'])->name('home');
+    ```
+
+    **Controller Method**: `AuthController@showLogin`
+
+    **Returns**: Login view/form
+
+    **Example Usage**:
+    ```php
+    // Redirect to login
+    return redirect()->route('home');
+
+    // Generate URL
+    $url = route('home'); // Returns: http://yourapp.com/
+    ```
+  </Tab>
+
+  <Tab title="Process Login">
+    <ParamField path="/login" type="POST" route="login">
+      Authenticates user credentials and creates a session
+    </ParamField>
+
+    ```php
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    ```
+
+    **Controller Method**: `AuthController@login`
+
+    **Expected Input**: User credentials (email/username and password)
+
+    **Example Usage**:
+    ```blade
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
+        <input type="email" name="email" required>
+        <input type="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  The root path `/` serves as the login page, making it the application's entry point for unauthenticated users.
+</Note>
+
+## Registration Routes
+
+<Tabs>
+  <Tab title="Show Registration Form">
+    <ParamField path="/signup" type="GET" route="signup">
+      Displays the registration form for new users
+    </ParamField>
+
+    ```php
+    Route::get('/signup', [AuthController::class, 'showRegister'])->name('signup');
+    ```
+
+    **Controller Method**: `AuthController@showRegister`
+
+    **Returns**: Registration view/form
+
+    **Example Usage**:
+    ```php
+    // Link to registration
+    <a href="{{ route('signup') }}">Create Account</a>
+    ```
+  </Tab>
+
+  <Tab title="Process Registration">
+    <ParamField path="/signup" type="POST" route="register">
+      Creates a new user account and authenticates the user
+    </ParamField>
+
+    ```php
+    Route::post('/signup', [AuthController::class, 'register'])->name('register');
+    ```
+
+    **Controller Method**: `AuthController@register`
+
+    **Expected Input**: New user information (name, email, password, etc.)
+
+    **Example Usage**:
+    ```blade
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
+        <input type="text" name="name" required>
+        <input type="email" name="email" required>
+        <input type="password" name="password" required>
+        <input type="password" name="password_confirmation" required>
+        <button type="submit">Sign Up</button>
+    </form>
+    ```
+  </Tab>
+</Tabs>
+
+<Info>
+  Both GET and POST routes for signup use the same path `/signup` but different HTTP methods, following RESTful conventions.
+</Info>
+
+## Logout Route
+
+<ParamField path="/logout" type="POST" route="logout">
+  Logs out the authenticated user and destroys their session
+</ParamField>
+
+```php
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+```
+
+**Controller Method**: `AuthController@logout`
+
+**HTTP Method**: POST (not GET for security reasons)
+
+**Example Usage**:
+```blade
+<form method="POST" action="{{ route('logout') }}">
+    @csrf
+    <button type="submit">Logout</button>
+</form>
+```
+
+<Note>
+  Logout uses POST method to prevent CSRF attacks. Never use GET requests for state-changing operations like logout.
+</Note>
+
+## Route Protection
+
+### Current Implementation
+
+The authentication routes in `web.php` don't show explicit middleware configuration. However, proper route protection should be implemented:
+
+```php
+// Recommended: Protect dashboard routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', fn() => view('welcome'))->name('dashboard');
+    Route::get('/estadisticas', fn() => view('estadisticas'))->name('estadisticas');
+    // ... other protected routes
+});
+
+// Guest-only routes (redirect if authenticated)
+Route::middleware(['guest'])->group(function () {
+    Route::get('/', [AuthController::class, 'showLogin'])->name('home');
+    Route::get('/signup', [AuthController::class, 'showRegister'])->name('signup');
+});
+```
+
+<Info>
+  Consider implementing middleware groups to:
+  - Protect dashboard routes with `auth` middleware
+  - Prevent authenticated users from accessing login/signup with `guest` middleware
+  - Add CSRF protection (automatically included in Laravel's web middleware)
+</Info>
+
+## Middleware Usage
+
+Laravel's default web middleware group is automatically applied to all routes in `web.php`:
+
+- **CSRF Protection**: Validates CSRF tokens on POST requests
+- **Session Handling**: Manages user sessions
+- **Cookie Encryption**: Encrypts cookies
+- **Validation**: Validates incoming requests
+
+### Recommended Additional Middleware
+
+<Tabs>
+  <Tab title="Auth Middleware">
+    ```php
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', fn() => view('welcome'))->name('dashboard');
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    });
+    ```
+    
+    Ensures only authenticated users can access protected routes.
+  </Tab>
+
+  <Tab title="Guest Middleware">
+    ```php
+    Route::middleware('guest')->group(function () {
+        Route::get('/', [AuthController::class, 'showLogin'])->name('home');
+        Route::post('/login', [AuthController::class, 'login'])->name('login');
+        Route::get('/signup', [AuthController::class, 'showRegister'])->name('signup');
+        Route::post('/signup', [AuthController::class, 'register'])->name('register');
+    });
+    ```
+    
+    Redirects authenticated users away from login/signup pages.
+  </Tab>
+
+  <Tab title="Throttle Middleware">
+    ```php
+    Route::middleware('throttle:5,1')->group(function () {
+        Route::post('/login', [AuthController::class, 'login'])->name('login');
+        Route::post('/signup', [AuthController::class, 'register'])->name('register');
+    });
+    ```
+    
+    Rate limits authentication attempts (5 requests per minute).
+  </Tab>
+</Tabs>
+
+## AuthController Methods
+
+The `AuthController` handles all authentication logic:
+
+```php
+use App\Http\Controllers\AuthController;
+```
+
+### Controller Methods
+
+<ParamField path="showLogin" type="method">
+  Displays the login form view
+</ParamField>
+
+<ParamField path="login" type="method">
+  Validates credentials and authenticates the user
+</ParamField>
+
+<ParamField path="logout" type="method">
+  Logs out the current user and invalidates the session
+</ParamField>
+
+<ParamField path="showRegister" type="method">
+  Displays the registration form view
+</ParamField>
+
+<ParamField path="register" type="method">
+  Validates input, creates a new user, and authenticates them
+</ParamField>
+
+## Example: Complete Authentication Flow
+
+```php
+// 1. User visits homepage (unauthenticated)
+GET / → AuthController@showLogin → login.blade.php
+
+// 2. User submits login form
+POST /login → AuthController@login → (validates) → redirect to /dashboard
+
+// 3. User browses dashboard (authenticated)
+GET /dashboard → dashboard view
+
+// 4. User logs out
+POST /logout → AuthController@logout → redirect to /
+```
+
+<Note>
+  Ensure your `AuthController` implements proper validation, password hashing, and session management for secure authentication.
+</Note>

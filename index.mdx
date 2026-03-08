@@ -1,97 +1,158 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Dashboard Laravel
+description: Administrative dashboard built with Laravel 11, featuring client management, sales tracking, invoicing, and analytics.
 ---
 
-## Setting up
+<div className="bg-white border border-[#e0e0e0] rounded-lg p-12 shadow-sm mb-8">
+  <h1 className="text-5xl font-bold text-[#1a1a1a] mb-4" style={{ fontFamily: 'Inter' }}>
+    Dashboard Laravel
+  </h1>
+  <p className="text-xl text-[#545454] mb-8" style={{ fontFamily: 'Inter' }}>
+    Modern administrative dashboard built with Laravel 11, Bootstrap 5, and PostgreSQL
+  </p>
+  <div className="flex gap-4">
+    <a 
+      href="/introduction" 
+      className="inline-block px-6 py-3 bg-[#94cb04] text-white rounded-md font-semibold hover:bg-[#7fa803] transition-colors"
+      style={{ fontFamily: 'Inter' }}
+    >
+      Get Started
+    </a>
+    <a 
+      href="https://github.com/sofih-ii/Dashboard_php" 
+      className="inline-block px-6 py-3 bg-[#e6e6e6] text-[#1a1a1a] rounded-md font-semibold hover:bg-[#d9d9d9] transition-colors"
+      style={{ fontFamily: 'Inter' }}
+    >
+      View on GitHub
+    </a>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+## Key Features
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Complete Authentication" icon="lock" href="/features/authentication">
+    Secure login, registration, and logout with bcrypt password hashing and CSRF protection
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Real-time Dashboard" icon="chart-line" href="/features/dashboard">
+    KPI metrics and interactive Chart.js visualizations for business insights
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Client Management" icon="users" href="/modules/clients">
+    Organize clients with segmentation: Premium, Regular, and Occasional tiers
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Sales Tracking" icon="cart-shopping" href="/modules/sales">
+    Monitor orders with status tracking: Completed, Pending, In Transit
   </Card>
-</Columns>
+  <Card title="Invoice Management" icon="file-invoice" href="/modules/invoices">
+    Track payment status with filters for Paid, Pending, and Overdue invoices
+  </Card>
+  <Card title="Message System" icon="message" href="/modules/messages">
+    Built-in inbox with chat interface and unread message counter
+  </Card>
+</CardGroup>
 
-## Create beautiful pages
+## Tech Stack
 
-Everything you need to create world-class documentation.
+Built with modern, production-ready technologies:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+- **Backend**: Laravel 11 / PHP 8.2
+- **Database**: PostgreSQL 15 with Eloquent ORM
+- **Frontend**: Bootstrap 5.3 + Custom Soft UI design system
+- **Charts**: Chart.js for interactive data visualizations
+- **Authentication**: Native Laravel Auth with bcrypt
 
-## Need inspiration?
+## Quick Start
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/sofih-ii/Dashboard_php.git
+    cd dashboard-laravel
+    ```
+  </Step>
+  
+  <Step title="Install dependencies">
+    ```bash
+    composer install
+    cp .env.example .env
+    php artisan key:generate
+    ```
+  </Step>
+  
+  <Step title="Configure database">
+    Edit `.env` with your PostgreSQL credentials:
+    ```env
+    DB_CONNECTION=pgsql
+    DB_HOST=127.0.0.1
+    DB_PORT=5432
+    DB_DATABASE=dashboard_db
+    DB_USERNAME=postgres
+    DB_PASSWORD=your_password
+    ```
+  </Step>
+  
+  <Step title="Run migrations">
+    ```bash
+    php artisan migrate
+    ```
+  </Step>
+  
+  <Step title="Start the server">
+    ```bash
+    php artisan serve
+    ```
+    Open your browser at `http://127.0.0.1:8000`
+  </Step>
+</Steps>
+
+## What You'll Build
+
+Dashboard Laravel provides a complete administrative interface with:
+
+- **Statistics Module**: Four interactive Chart.js graphs showing sales trends, customer demographics, top products, and distribution analytics
+- **Analysis Dashboard**: Traffic monitoring, conversion tracking, traffic source breakdowns, and most-visited pages
+- **Business Operations**: Complete CRUD for clients, sales orders, and invoices with status management
+- **Communication**: Message inbox with real-time chat interface
+- **Configuration**: Multi-tab settings for profile, security (2FA), notifications, and system preferences
+
+## Architecture
+
+Built on Laravel's MVC architecture:
+
+- **Models**: Eloquent ORM with relationships between Users, Clients, Sales, Invoices, and Messages
+- **Controllers**: Clean separation with AuthController for authentication logic
+- **Views**: Blade template inheritance with a base layout and 11 specialized views
+- **Routes**: Named routes with clear RESTful patterns
+
+<CardGroup cols={2}>
+  <Card title="Development Guide" icon="code" href="/development/structure">
+    Learn about the project structure and architecture
+  </Card>
+  <Card title="API Reference" icon="book" href="/api/auth-controller">
+    Explore controllers, models, and routes
+  </Card>
+</CardGroup>
+
+## Design System
+
+Dashboard Laravel features a custom Soft UI design system with:
+
+- **Color Palette**: Cream backgrounds with vibrant card colors (yellow, pink, green, blue, lavender, peach)
+- **Typography**: DM Serif Display for headings, DM Sans for body text
+- **Components**: Responsive cards, charts, tables, and forms
+- **Dark Sidebar**: Consistent navigation with #1a1a1a sidebar and navbar
+
+All styles are defined in `/public/css/dashboard.css` using CSS variables for easy customization.
+
+## Community
+
+Dashboard Laravel is an academic project demonstrating Laravel 11 best practices.
+
+<CardGroup cols={2}>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/sofih-ii/Dashboard_php">
+    View source code and contribute
+  </Card>
+  <Card title="Report Issues" icon="bug" href="https://github.com/sofih-ii/Dashboard_php/issues">
+    Found a bug? Let us know
+  </Card>
+</CardGroup>

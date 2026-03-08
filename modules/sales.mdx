@@ -1,0 +1,280 @@
+---
+title: 'Sales Module'
+description: 'Complete sales tracking and order management system with real-time status monitoring'
+---
+
+## Overview
+
+The Sales module provides comprehensive order management and tracking capabilities. It enables you to monitor sales performance, manage order statuses, and track revenue metrics in real-time.
+
+<CardGroup cols={2}>
+  <Card title="Order Tracking" icon="shopping-cart">
+    Monitor all orders with real-time status updates: Completed, Pending, In Transit, and Returned
+  </Card>
+  <Card title="Revenue Analytics" icon="chart-line">
+    Track sales performance with monthly revenue charts and key metrics
+  </Card>
+  <Card title="Client Relations" icon="users">
+    Link sales directly to client profiles for better relationship management
+  </Card>
+  <Card title="Invoice Integration" icon="file-invoice">
+    Automatic invoice generation for completed sales
+  </Card>
+</CardGroup>
+
+## Venta Model
+
+The `Venta` model represents sales transactions in the system:
+
+```php app/Models/Venta.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Venta extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'numero_orden',
+        'cliente_id',
+        'producto',
+        'total',
+        'estado',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function factura()
+    {
+        return $this->hasOne(Factura::class);
+    }
+}
+```
+
+### Model Relationships
+
+<Tabs>
+  <Tab title="Cliente Relationship">
+    Each sale belongs to a client (`belongsTo`):
+    
+    ```php
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $venta = Venta::find(1);
+    $cliente = $venta->cliente;
+    echo $cliente->nombre; // Access client name
+    ```
+  </Tab>
+  
+  <Tab title="Factura Relationship">
+    Each sale can have one invoice (`hasOne`):
+    
+    ```php
+    public function factura()
+    {
+        return $this->hasOne(Factura::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $venta = Venta::find(1);
+    $factura = $venta->factura;
+    echo $factura->numero_factura; // Access invoice number
+    ```
+  </Tab>
+</Tabs>
+
+## Database Schema
+
+The `ventas` table structure from the migration:
+
+```php database/migrations/2026_03_03_191659_create_ventas_table.php
+Schema::create('ventas', function (Blueprint $table) {
+    $table->id();
+    $table->string('numero_orden')->unique();
+    $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+    $table->string('producto');
+    $table->decimal('total', 10, 2);
+    $table->enum('estado', ['completado', 'pendiente', 'en_camino', 'devuelto'])->default('pendiente');
+    $table->timestamps();
+});
+```
+
+### Table Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | bigint | Primary key |
+| `numero_orden` | string | Unique order number |
+| `cliente_id` | foreignId | Reference to clients table |
+| `producto` | string | Product name/description |
+| `total` | decimal(10,2) | Total amount |
+| `estado` | enum | Order status |
+| `timestamps` | timestamps | created_at, updated_at |
+
+## Order Statuses
+
+<Note>
+The system supports four distinct order statuses to track the complete sales lifecycle.
+</Note>
+
+<Tabs>
+  <Tab title="Completado">
+    **Completed Orders**
+    
+    Orders that have been successfully fulfilled and delivered to the customer.
+    
+    ```php
+    Venta::where('estado', 'completado')->get();
+    ```
+  </Tab>
+  
+  <Tab title="Pendiente">
+    **Pending Orders**
+    
+    Orders awaiting processing or confirmation. This is the default status.
+    
+    ```php
+    Venta::where('estado', 'pendiente')->get();
+    ```
+  </Tab>
+  
+  <Tab title="En Camino">
+    **In Transit Orders**
+    
+    Orders currently being shipped or delivered to the customer.
+    
+    ```php
+    Venta::where('estado', 'en_camino')->get();
+    ```
+  </Tab>
+  
+  <Tab title="Devuelto">
+    **Returned Orders**
+    
+    Orders that have been returned by the customer.
+    
+    ```php
+    Venta::where('estado', 'devuelto')->get();
+    ```
+  </Tab>
+</Tabs>
+
+## Sales View Features
+
+The sales interface (`ventas.blade.php`) provides:
+
+### Dashboard Cards
+
+- **Total Sales**: Monthly revenue total ($78,450)
+- **Orders**: Total order count (342) with growth percentage
+- **Pending**: Orders awaiting processing (18)
+- **Returns**: Returned orders this month (5)
+
+### Analytics Charts
+
+<CardGroup cols={2}>
+  <Card title="Monthly Sales Chart" icon="chart-bar">
+    Bar chart showing sales revenue by month (January - June)
+  </Card>
+  <Card title="Order Status Chart" icon="chart-pie">
+    Pie chart displaying distribution of order statuses
+  </Card>
+</CardGroup>
+
+### Sales Table
+
+The main sales table displays:
+
+- Order number (`#1045`, `#1044`, etc.)
+- Client name
+- Product description
+- Total amount
+- Order date
+- Status badge (color-coded)
+- Action buttons (View, Cancel)
+
+<Info>
+The table supports real-time search and filtering for quick order lookup.
+</Info>
+
+## Usage Examples
+
+### Creating a New Sale
+
+```php
+use App\Models\Venta;
+
+$venta = Venta::create([
+    'numero_orden' => 'ORD-2024-1046',
+    'cliente_id' => 1,
+    'producto' => 'Laptop Pro',
+    'total' => 1500.00,
+    'estado' => 'pendiente'
+]);
+```
+
+### Querying Sales with Client Data
+
+```php
+// Get all sales with client information
+$ventas = Venta::with('cliente')->get();
+
+foreach ($ventas as $venta) {
+    echo $venta->numero_orden . ' - ' . $venta->cliente->nombre;
+}
+```
+
+### Updating Order Status
+
+```php
+$venta = Venta::find(1);
+$venta->estado = 'en_camino';
+$venta->save();
+```
+
+### Sales by Status Report
+
+```php
+$completados = Venta::where('estado', 'completado')->count();
+$pendientes = Venta::where('estado', 'pendiente')->count();
+$en_camino = Venta::where('estado', 'en_camino')->count();
+$devueltos = Venta::where('estado', 'devuelto')->count();
+```
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="Unique Order Numbers" icon="hashtag">
+    Each sale has a unique order identifier for tracking
+  </Card>
+  <Card title="Client Integration" icon="link">
+    Direct relationship with client records
+  </Card>
+  <Card title="Cascade Deletion" icon="trash">
+    Sales are automatically deleted when clients are removed
+  </Card>
+  <Card title="Decimal Precision" icon="dollar-sign">
+    Total amounts stored with 2 decimal precision
+  </Card>
+  <Card title="Status Tracking" icon="list-check">
+    Four-stage order lifecycle monitoring
+  </Card>
+  <Card title="Timestamp Tracking" icon="clock">
+    Automatic created_at and updated_at timestamps
+  </Card>
+</CardGroup>

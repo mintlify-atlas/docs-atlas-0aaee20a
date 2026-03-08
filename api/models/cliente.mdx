@@ -1,0 +1,225 @@
+---
+title: "Cliente Model"
+description: "Customer model with segmentation, relationships to sales, invoices, and messages"
+---
+
+## Overview
+
+The `Cliente` model represents customers in the Dashboard Laravel application. It includes customer segmentation capabilities (premium, regular, occasional) and maintains relationships with sales (ventas), invoices (facturas), and messages (mensajes).
+
+<Note>
+  The Cliente model tracks customer status, segment classification, and total purchase amounts for business intelligence and CRM purposes.
+</Note>
+
+## Model Details
+
+### Namespace
+```php
+App\Models\Cliente
+```
+
+### Extends
+```php
+Illuminate\Database\Eloquent\Model
+```
+
+### Traits
+- `HasFactory` - Enables model factory support for testing and seeding
+
+## Fillable Attributes
+
+The following attributes are mass assignable:
+
+<ParamField path="nombre" type="string" required>
+  Customer's first name
+</ParamField>
+
+<ParamField path="apellido" type="string" required>
+  Customer's last name
+</ParamField>
+
+<ParamField path="email" type="string" required>
+  Customer's email address for communication
+</ParamField>
+
+<ParamField path="telefono" type="string">
+  Customer's phone number
+</ParamField>
+
+<ParamField path="estado" type="string">
+  Customer status (e.g., active, inactive)
+</ParamField>
+
+<ParamField path="segmento" type="string">
+  Customer segmentation classification:
+  - `premium` - High-value customers
+  - `regular` - Standard customers
+  - `ocasional` - Occasional customers
+</ParamField>
+
+<ParamField path="total_compras" type="decimal">
+  Total amount of all customer purchases
+</ParamField>
+
+## Relationships
+
+### ventas() - Has Many
+
+A customer can have multiple sales records.
+
+```php
+public function ventas()
+{
+    return $this->hasMany(Venta::class);
+}
+```
+
+<ResponseField name="ventas" type="Venta[]">
+  Collection of all sales (Venta) associated with this customer
+</ResponseField>
+
+**Usage:**
+```php
+$cliente = Cliente::find(1);
+$ventas = $cliente->ventas; // Get all sales
+$ventasCount = $cliente->ventas()->count(); // Count sales
+```
+
+### facturas() - Has Many
+
+A customer can have multiple invoices.
+
+```php
+public function facturas()
+{
+    return $this->hasMany(Factura::class);
+}
+```
+
+<ResponseField name="facturas" type="Factura[]">
+  Collection of all invoices (Factura) associated with this customer
+</ResponseField>
+
+**Usage:**
+```php
+$cliente = Cliente::find(1);
+$facturas = $cliente->facturas; // Get all invoices
+$facturasPendientes = $cliente->facturas()->where('estado', 'pendiente')->get();
+```
+
+### mensajes() - Has Many
+
+A customer can have multiple messages.
+
+```php
+public function mensajes()
+{
+    return $this->hasMany(Mensaje::class);
+}
+```
+
+<ResponseField name="mensajes" type="Mensaje[]">
+  Collection of all messages (Mensaje) associated with this customer
+</ResponseField>
+
+**Usage:**
+```php
+$cliente = Cliente::find(1);
+$mensajes = $cliente->mensajes; // Get all messages
+$mensajesNoLeidos = $cliente->mensajes()->where('leido', false)->get();
+```
+
+## Database Configuration
+
+### Table Name
+```php
+'clientes' // Laravel automatically pluralizes the model name
+```
+
+### Timestamps
+```php
+true // Uses created_at and updated_at timestamps
+```
+
+## Full Model Code
+
+<Expandable title="View Complete Cliente Model Source Code">
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Cliente extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'nombre',
+        'apellido',
+        'email',
+        'telefono',
+        'estado',
+        'segmento',
+        'total_compras',
+    ];
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
+
+    public function facturas()
+    {
+        return $this->hasMany(Factura::class);
+    }
+
+    public function mensajes()
+    {
+        return $this->hasMany(Mensaje::class);
+    }
+}
+```
+</Expandable>
+
+## Usage Examples
+
+### Creating a New Customer
+```php
+use App\Models\Cliente;
+
+$cliente = Cliente::create([
+    'nombre' => 'Juan',
+    'apellido' => 'Pérez',
+    'email' => 'juan.perez@example.com',
+    'telefono' => '+34 123 456 789',
+    'estado' => 'activo',
+    'segmento' => 'premium',
+    'total_compras' => 1500.00,
+]);
+```
+
+### Accessing Customer Relationships
+```php
+$cliente = Cliente::with(['ventas', 'facturas', 'mensajes'])->find(1);
+
+// Get total sales amount
+$totalVentas = $cliente->ventas->sum('total');
+
+// Get pending invoices
+$facturasPendientes = $cliente->facturas->where('estado', 'pendiente');
+
+// Get unread messages count
+$mensajesNoLeidos = $cliente->mensajes->where('leido', false)->count();
+```
+
+### Customer Segmentation Query
+```php
+// Get all premium customers
+$premiumClientes = Cliente::where('segmento', 'premium')->get();
+
+// Get customers with high purchase totals
+$highValueClientes = Cliente::where('total_compras', '>', 5000)->get();
+```

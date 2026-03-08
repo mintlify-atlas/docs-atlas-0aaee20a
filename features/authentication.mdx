@@ -1,0 +1,429 @@
+---
+title: 'Authentication System'
+description: 'Complete authentication system with login, registration, and secure session management'
+---
+
+# Authentication System
+
+Dashboard Laravel includes a complete authentication system built with Laravel 11's native authentication features, providing secure user login, registration, and session management.
+
+## Overview
+
+The authentication system handles:
+
+<CardGroup cols={2}>
+  <Card title="User Login" icon="right-to-bracket">
+    Secure login with email and password validation
+  </Card>
+  <Card title="User Registration" icon="user-plus">
+    New user registration with validation rules
+  </Card>
+  <Card title="Session Management" icon="shield-halved">
+    CSRF protection and session regeneration
+  </Card>
+  <Card title="Password Security" icon="lock">
+    Bcrypt hashing for password storage
+  </Card>
+</CardGroup>
+
+## Authentication Controller
+
+The `AuthController` manages all authentication operations. Located at:
+
+```
+app/Http/Controllers/AuthController.php
+```
+
+### Controller Structure
+
+```php
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+class AuthController extends Controller
+{
+    // Login, Register, and Logout methods
+}
+```
+
+## Authentication Routes
+
+All authentication routes are defined in `routes/web.php`:
+
+```php
+use App\Http\Controllers\AuthController;
+
+// Login routes
+Route::get('/',        [AuthController::class, 'showLogin'])->name('home');
+Route::post('/login',  [AuthController::class, 'login'])->name('login');
+
+// Registration routes
+Route::get('/signup',  [AuthController::class, 'showRegister'])->name('signup');
+Route::post('/signup', [AuthController::class, 'register'])->name('register');
+
+// Logout route
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+```
+
+## Login System
+
+<Steps>
+  <Step title="Display Login Form">
+    The `showLogin()` method checks if a user is already authenticated and redirects accordingly:
+
+    ```php
+    public function showLogin()
+    {
+        if (Auth::check()) return redirect('/dashboard');
+        return view('home');
+    }
+    ```
+
+    <Note>
+      If the user is already logged in, they are automatically redirected to the dashboard.
+    </Note>
+  </Step>
+
+  <Step title="Process Login Request">
+    The `login()` method handles authentication with comprehensive validation:
+
+    ```php
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|min:6',
+        ], [
+            'email.required'    => 'El correo es obligatorio.',
+            'email.email'       => 'Ingresa un correo válido.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min'      => 'Mínimo 6 caracteres.',
+        ]);
+
+        if (Auth::attempt($request->only('email', 'password'), $request->has('remember'))) {
+            $request->session()->regenerate();
+            return redirect('/dashboard');
+        }
+
+        return back()->withErrors(['email' => 'Credenciales incorrectas.'])->withInput();
+    }
+    ```
+  </Step>
+
+  <Step title="Session Regeneration">
+    After successful login, the session ID is regenerated to prevent session fixation attacks:
+
+    ```php
+    $request->session()->regenerate();
+    ```
+
+    <Warning>
+      Session regeneration is a critical security measure that prevents attackers from hijacking user sessions.
+    </Warning>
+  </Step>
+</Steps>
+
+### Login Validation Rules
+
+| Field | Rules | Error Messages |
+|-------|-------|----------------|
+| **email** | `required`, `email` | El correo es obligatorio / Ingresa un correo válido |
+| **password** | `required`, `min:6` | La contraseña es obligatoria / Mínimo 6 caracteres |
+
+### Remember Me Feature
+
+The login system includes a "Remember Me" checkbox:
+
+```php
+Auth::attempt($request->only('email', 'password'), $request->has('remember'))
+```
+
+When checked, Laravel creates a long-lived session cookie for the user.
+
+## Registration System
+
+<Steps>
+  <Step title="Display Registration Form">
+    The `showRegister()` method ensures unauthenticated access:
+
+    ```php
+    public function showRegister()
+    {
+        if (Auth::check()) return redirect('/dashboard');
+        return view('signup');
+    }
+    ```
+  </Step>
+
+  <Step title="Process Registration">
+    The `register()` method creates new users with secure password hashing:
+
+    ```php
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6|confirmed',
+        ], [
+            'name.required'      => 'El nombre es obligatorio.',
+            'email.required'     => 'El correo es obligatorio.',
+            'email.unique'       => 'Este correo ya está registrado.',
+            'password.min'       => 'Mínimo 6 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+        ]);
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        Auth::login($user);
+        return redirect('/dashboard');
+    }
+    ```
+  </Step>
+
+  <Step title="Automatic Login">
+    After successful registration, the user is automatically logged in:
+
+    ```php
+    Auth::login($user);
+    return redirect('/dashboard');
+    ```
+  </Step>
+</Steps>
+
+### Registration Validation Rules
+
+<Accordion title="View All Validation Rules">
+  | Field | Rules | Description |
+  |-------|-------|-------------|
+  | **name** | `required`, `string`, `max:255` | User's full name |
+  | **email** | `required`, `email`, `unique:users,email` | Must be unique in database |
+  | **password** | `required`, `min:6`, `confirmed` | Must match password_confirmation |
+</Accordion>
+
+### Password Confirmation
+
+The registration form requires password confirmation:
+
+```html
+<input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
+<input type="password" name="password_confirmation" placeholder="Repite la contraseña" required>
+```
+
+Laravel's `confirmed` validation rule automatically checks that `password` matches `password_confirmation`.
+
+## Logout System
+
+The `logout()` method provides secure session termination:
+
+```php
+public function logout(Request $request)
+{
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/');
+}
+```
+
+<Steps>
+  <Step title="Logout User">
+    ```php
+    Auth::logout();
+    ```
+    Terminates the authenticated session.
+  </Step>
+
+  <Step title="Invalidate Session">
+    ```php
+    $request->session()->invalidate();
+    ```
+    Clears all session data.
+  </Step>
+
+  <Step title="Regenerate CSRF Token">
+    ```php
+    $request->session()->regenerateToken();
+    ```
+    Prevents CSRF attacks after logout.
+  </Step>
+</Steps>
+
+## Security Features
+
+<CardGroup cols={2}>
+  <Card title="Bcrypt Hashing" icon="shield">
+    Passwords are hashed using Laravel's `Hash::make()` with bcrypt algorithm:
+    
+    ```php
+    'password' => Hash::make($request->password)
+    ```
+  </Card>
+
+  <Card title="CSRF Protection" icon="shield-halved">
+    All forms include CSRF tokens automatically:
+    
+    ```php
+    @csrf
+    ```
+  </Card>
+
+  <Card title="Session Regeneration" icon="rotate">
+    Session IDs are regenerated on login to prevent fixation attacks:
+    
+    ```php
+    $request->session()->regenerate();
+    ```
+  </Card>
+
+  <Card title="Email Uniqueness" icon="envelope">
+    Emails must be unique in the database:
+    
+    ```php
+    'email' => 'required|email|unique:users,email'
+    ```
+  </Card>
+</CardGroup>
+
+## Authentication Views
+
+The authentication system uses a unified login/register view at `resources/views/home.blade.php`:
+
+### View Features
+
+<Tabs>
+  <Tab title="Login Tab">
+    ```html
+    <div class="tab-pane fade show active" id="signin">
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" name="email" class="form-control" 
+                       placeholder="usuario@ejemplo.com" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password" class="form-control" 
+                       placeholder="••••••••" required>
+            </div>
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" 
+                       name="remember" id="remember">
+                <label class="form-check-label" for="remember">
+                    Recordar mi sesión
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                Entrar al panel
+            </button>
+        </form>
+    </div>
+    ```
+  </Tab>
+
+  <Tab title="Register Tab">
+    ```html
+    <div class="tab-pane fade" id="signup">
+        <form method="POST" action="{{ route('register') }}">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label">Nombre completo</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Confirmar contraseña</label>
+                <input type="password" name="password_confirmation" 
+                       class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-success">
+                Crear cuenta
+            </button>
+        </form>
+    </div>
+    ```
+  </Tab>
+
+  <Tab title="Error Handling">
+    ```php
+    @if ($errors->any())
+        <div class="alert" style="background:rgba(242,167,195,0.2);">
+            <i class="fas fa-exclamation-circle"></i> 
+            {{ $errors->first() }}
+        </div>
+    @endif
+
+    @if (session('success'))
+        <div class="alert" style="background:rgba(143,187,110,0.2);">
+            <i class="fas fa-check-circle"></i> 
+            {{ session('success') }}
+        </div>
+    @endif
+    ```
+  </Tab>
+</Tabs>
+
+## Testing Authentication
+
+<Steps>
+  <Step title="Start Development Server">
+    ```bash
+    php artisan serve
+    ```
+  </Step>
+
+  <Step title="Visit Login Page">
+    Navigate to `http://localhost:8000`
+  </Step>
+
+  <Step title="Create Account">
+    Click the "Crear cuenta" tab and register a new user
+  </Step>
+
+  <Step title="Access Dashboard">
+    After login, you'll be redirected to `/dashboard`
+  </Step>
+</Steps>
+
+<Note>
+  Make sure to run `php artisan migrate` before testing to ensure the users table exists.
+</Note>
+
+## Best Practices
+
+<Warning>
+  **Important Security Considerations:**
+  
+  - Never store passwords in plain text
+  - Always use CSRF protection on forms
+  - Regenerate session IDs after authentication
+  - Validate and sanitize all user input
+  - Use HTTPS in production environments
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Dashboard Overview" icon="gauge" href="/features/dashboard">
+    Learn about the main dashboard interface
+  </Card>
+  <Card title="Statistics Module" icon="chart-line" href="/features/statistics">
+    Explore data visualization features
+  </Card>
+</CardGroup>

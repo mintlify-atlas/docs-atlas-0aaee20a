@@ -1,0 +1,329 @@
+---
+title: "Blade Templates"
+description: "Learn how to use Laravel's Blade templating engine in Dashboard Laravel for building dynamic views"
+---
+
+# Blade Templates
+
+Dashboard Laravel uses Laravel's **Blade templating engine** to build dynamic, reusable views. Blade provides powerful features like template inheritance, sections, and directives that make creating maintainable UI components easy.
+
+## Template Layouts
+
+Dashboard Laravel uses two primary layout files for different contexts:
+
+### App Layout (Dashboard Pages)
+
+The main application layout (`layouts/app.blade.php`) includes the full dashboard UI with navigation and sidebar.
+
+<CodeGroup>
+
+```php resources/views/layouts/app.blade.php
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Dashboard')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    @yield('styles')
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <!-- Navigation items -->
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <!-- Sidebar navigation -->
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                @yield('content')
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @yield('scripts')
+</body>
+</html>
+```
+
+```php resources/views/layouts/auth.blade.php
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Dashboard')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    @yield('styles')
+</head>
+<body>
+    @yield('content')
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    @yield('scripts')
+</body>
+</html>
+```
+
+</CodeGroup>
+
+<Info>
+The `auth.blade.php` layout is minimal and used for login/signup pages, while `app.blade.php` includes the full dashboard navigation.
+</Info>
+
+## Template Inheritance
+
+Blade uses `@extends` to inherit from a parent layout and `@section` to define content blocks.
+
+### Basic Page Structure
+
+```php resources/views/home.blade.php
+@extends('layouts.app')
+
+@section('title', 'Dashboard - Panel de Control')
+@section('nav_dashboard', 'active')
+@section('side_dashboard', 'active')
+
+@section('content')
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel de Control</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button class="btn btn-sm btn-outline-secondary">Compartir</button>
+            <button class="btn btn-sm btn-outline-secondary">Exportar</button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users"></i> Usuarios</h5>
+                <p class="card-text display-6">1,234</p>
+                <small class="text-white-50">+12% este mes</small>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+// Custom JavaScript for this page
+</script>
+@endsection
+```
+
+## Blade Directives
+
+Blade provides convenient directives for common PHP operations.
+
+### Control Structures
+
+<Tabs>
+  <Tab title="Conditionals">
+    ```php
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{ $errors->first() }}
+        </div>
+    @endif
+
+    @if (session('success'))
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+        </div>
+    @endif
+
+    @unless ($user->isPremium())
+        <p>Upgrade to premium for more features!</p>
+    @endunless
+    ```
+  </Tab>
+  <Tab title="Loops">
+    ```php
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Vendidas</th>
+                <th>Ingresos</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($productos as $producto)
+                <tr>
+                    <td><i class="fas fa-cube"></i> {{ $producto->nombre }}</td>
+                    <td>{{ $producto->vendidas }}</td>
+                    <td>${{ number_format($producto->ingresos, 2) }}</td>
+                    <td>
+                        <span class="badge bg-success">{{ $producto->estado }}</span>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    @forelse ($mensajes as $mensaje)
+        <div class="list-group-item">{{ $mensaje->texto }}</div>
+    @empty
+        <p class="text-muted">No hay mensajes disponibles</p>
+    @endforelse
+    ```
+  </Tab>
+  <Tab title="Forms">
+    ```php
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
+        
+        <div class="mb-3">
+            <label class="form-label">Correo electrónico</label>
+            <input type="email" name="email" class="form-control" 
+                   placeholder="usuario@ejemplo.com" 
+                   value="{{ old('email') }}" required autofocus>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">Contraseña</label>
+            <input type="password" name="password" class="form-control" 
+                   placeholder="••••••••" required>
+        </div>
+        
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" name="remember" id="remember">
+            <label class="form-check-label" for="remember">
+                Recordar mi sesión
+            </label>
+        </div>
+        
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary py-2">
+                Entrar al panel <i class="fas fa-arrow-right ms-1"></i>
+            </button>
+        </div>
+    </form>
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+The `@csrf` directive is **required** in all forms to protect against Cross-Site Request Forgery attacks. Laravel will automatically reject form submissions without a valid CSRF token.
+</Note>
+
+## Dynamic Navigation
+
+Blade sections can be used to dynamically set active navigation states:
+
+```php resources/views/estadisticas.blade.php
+@extends('layouts.app')
+
+@section('title', 'Estadísticas - Dashboard')
+@section('nav_estadisticas', 'active')  <!-- Top navbar -->
+@section('side_analisis', 'active')     <!-- Sidebar -->
+
+@section('content')
+<!-- Page content -->
+@endsection
+```
+
+In the layout file, these sections are yielded to apply the active class:
+
+```php
+<a class="nav-link @yield('nav_estadisticas')" href="/estadisticas">
+    <i class="fas fa-chart-bar"></i> Estadísticas
+</a>
+```
+
+## Outputting Data
+
+Blade uses double curly braces for echoing data with automatic XSS protection:
+
+```php
+{{-- Escaped output (safe) --}}
+<p>Usuario: {{ $user->name }}</p>
+<p>Email: {{ $user->email }}</p>
+
+{{-- Unescaped output (use with caution) --}}
+<div>{!! $htmlContent !!}</div>
+
+{{-- Default values --}}
+<p>{{ $nombre ?? 'Invitado' }}</p>
+
+{{-- Old input values (form repopulation) --}}
+<input type="text" value="{{ old('name') }}">
+```
+
+## Asset Management
+
+Use the `asset()` helper to reference public assets:
+
+```php
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+<script src="{{ asset('js/app.js') }}"></script>
+<img src="{{ asset('images/logo.png') }}" alt="Logo">
+```
+
+## Comments
+
+Blade comments are not included in the rendered HTML:
+
+```php
+{{-- This is a Blade comment and won't appear in HTML --}}
+
+<!-- This is an HTML comment and will appear in the source -->
+```
+
+## Components Example
+
+Create reusable card components:
+
+```php
+{{-- Stat Card Component --}}
+<div class="col-md-3">
+    <div class="card text-white bg-{{ $color }} mb-3">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-{{ $icon }}"></i> {{ $title }}
+            </h5>
+            <p class="card-text display-6">{{ $value }}</p>
+            <small class="text-white-50">{{ $subtitle }}</small>
+        </div>
+    </div>
+</div>
+```
+
+## Best Practices
+
+1. **Keep logic minimal**: Move complex logic to controllers or view composers
+2. **Use sections wisely**: Define clear, reusable content areas
+3. **Always use @csrf**: Include CSRF protection in all forms
+4. **Escape output**: Use `{{ }}` for user-generated content
+5. **Organize layouts**: Separate auth and dashboard layouts for clarity
+6. **Leverage directives**: Use `@if`, `@foreach`, etc. instead of raw PHP
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Design System" icon="palette" href="/development/frontend/design-system">
+    Learn about the Soft UI design system and CSS variables
+  </Card>
+  <Card title="Charts" icon="chart-line" href="/development/frontend/charts">
+    Integrate Chart.js for data visualization
+  </Card>
+</CardGroup>

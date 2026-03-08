@@ -1,0 +1,379 @@
+---
+title: 'Clients Module'
+description: 'Comprehensive client management system with segmentation, relationship tracking, and analytics'
+---
+
+## Overview
+
+The Clients module is the central hub for managing customer relationships. It provides client segmentation, purchase tracking, and integration with sales, invoices, and messages.
+
+<CardGroup cols={2}>
+  <Card title="Client Segmentation" icon="layer-group">
+    Categorize clients as Premium, Regular, or Occasional based on behavior
+  </Card>
+  <Card title="Purchase History" icon="shopping-bag">
+    Track total purchases and transaction history per client
+  </Card>
+  <Card title="Multi-Channel Relations" icon="project-diagram">
+    Integrated with sales, invoices, and messaging systems
+  </Card>
+  <Card title="Status Management" icon="toggle-on">
+    Active/Inactive status tracking for client engagement
+  </Card>
+</CardGroup>
+
+## Cliente Model
+
+The `Cliente` model is the foundation of customer data management:
+
+```php app/Models/Cliente.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Cliente extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'nombre',
+        'apellido',
+        'email',
+        'telefono',
+        'estado',
+        'segmento',
+        'total_compras',
+    ];
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
+
+    public function facturas()
+    {
+        return $this->hasMany(Factura::class);
+    }
+
+    public function mensajes()
+    {
+        return $this->hasMany(Mensaje::class);
+    }
+}
+```
+
+### Model Relationships
+
+<Tabs>
+  <Tab title="Ventas (Sales)">
+    Each client can have multiple sales (`hasMany`):
+    
+    ```php
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $cliente = Cliente::find(1);
+    $ventas = $cliente->ventas;
+    
+    // Get total sales amount
+    $total = $cliente->ventas()->sum('total');
+    ```
+  </Tab>
+  
+  <Tab title="Facturas (Invoices)">
+    Each client can have multiple invoices (`hasMany`):
+    
+    ```php
+    public function facturas()
+    {
+        return $this->hasMany(Factura::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $cliente = Cliente::find(1);
+    $facturas = $cliente->facturas;
+    
+    // Get pending invoices
+    $pendientes = $cliente->facturas()->where('estado', 'pendiente')->get();
+    ```
+  </Tab>
+  
+  <Tab title="Mensajes (Messages)">
+    Each client can have multiple messages (`hasMany`):
+    
+    ```php
+    public function mensajes()
+    {
+        return $this->hasMany(Mensaje::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $cliente = Cliente::find(1);
+    $mensajes = $cliente->mensajes;
+    
+    // Get unread messages
+    $no_leidos = $cliente->mensajes()->where('leido', false)->count();
+    ```
+  </Tab>
+</Tabs>
+
+## Database Schema
+
+The `clientes` table structure from the migration:
+
+```php database/migrations/2026_03_03_191644_create_clientes_table.php
+Schema::create('clientes', function (Blueprint $table) {
+    $table->id();
+    $table->string('nombre');
+    $table->string('apellido');
+    $table->string('email')->unique();
+    $table->string('telefono')->nullable();
+    $table->enum('estado', ['activo', 'inactivo'])->default('activo');
+    $table->enum('segmento', ['premium', 'regular', 'ocasional'])->default('regular');
+    $table->integer('total_compras')->default(0);
+    $table->timestamps();
+});
+```
+
+### Table Fields
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | bigint | Primary key | Unique client identifier |
+| `nombre` | string | Required | Client first name |
+| `apellido` | string | Required | Client last name |
+| `email` | string | Unique, Required | Client email address |
+| `telefono` | string | Nullable | Contact phone number |
+| `estado` | enum | Default: 'activo' | Client status |
+| `segmento` | enum | Default: 'regular' | Client segment category |
+| `total_compras` | integer | Default: 0 | Total purchase count |
+| `timestamps` | timestamps | Auto | created_at, updated_at |
+
+## Client Segmentation
+
+<Note>
+Client segmentation helps prioritize service and personalize marketing strategies based on customer value.
+</Note>
+
+<Tabs>
+  <Tab title="Premium">
+    **Premium Clients**
+    
+    High-value customers with frequent purchases and large transaction volumes.
+    
+    ```php
+    Cliente::where('segmento', 'premium')->get();
+    ```
+    
+    **Characteristics:**
+    - 21+ total purchases
+    - High average order value
+    - Priority support access
+  </Tab>
+  
+  <Tab title="Regular">
+    **Regular Clients**
+    
+    Standard customers with moderate purchase frequency. This is the default segment.
+    
+    ```php
+    Cliente::where('segmento', 'regular')->get();
+    ```
+    
+    **Characteristics:**
+    - 5-20 total purchases
+    - Standard support level
+    - Most common segment
+  </Tab>
+  
+  <Tab title="Occasional">
+    **Occasional Clients**
+    
+    Infrequent buyers or new customers with limited purchase history.
+    
+    ```php
+    Cliente::where('segmento', 'ocasional')->get();
+    ```
+    
+    **Characteristics:**
+    - 0-4 total purchases
+    - Potential for conversion
+    - Targeted campaigns
+  </Tab>
+</Tabs>
+
+## Client Status
+
+Clients can be marked as active or inactive:
+
+<CardGroup cols={2}>
+  <Card title="Activo" icon="check-circle">
+    Active clients currently engaging with the platform
+    ```php
+    Cliente::where('estado', 'activo')->count();
+    // Returns: 2,340 (82% of total)
+    ```
+  </Card>
+  <Card title="Inactivo" icon="times-circle">
+    Inactive clients who haven't engaged recently
+    ```php
+    Cliente::where('estado', 'inactivo')->count();
+    // Returns: 507 (18% of total)
+    ```
+  </Card>
+</CardGroup>
+
+## Client View Features
+
+The client interface (`clientes.blade.php`) provides:
+
+### Dashboard Metrics
+
+- **Total Clients**: 2,847 (+15% this month)
+- **Active Clients**: 2,340 (82% of total)
+- **New Clients**: 124 this month
+- **Inactive Clients**: 507 (18% of total)
+
+### Analytics Charts
+
+<CardGroup cols={2}>
+  <Card title="New Clients by Month" icon="chart-bar">
+    Bar chart showing monthly client acquisition trends
+  </Card>
+  <Card title="Client Segmentation" icon="chart-pie">
+    Doughnut chart displaying segment distribution:
+    - Premium: 15%
+    - Regular: 45%
+    - Occasional: 22%
+    - Inactive: 18%
+  </Card>
+</CardGroup>
+
+### Client Management Table
+
+The main client table displays:
+
+- Client ID
+- Full name with icon
+- Email address
+- Phone number
+- Total purchases count
+- Status badge (Active/Inactive)
+- Action buttons (View, Edit, Delete)
+
+<Info>
+The interface includes real-time search and status filtering for efficient client lookup.
+</Info>
+
+## Usage Examples
+
+### Creating a New Client
+
+```php
+use App\Models\Cliente;
+
+$cliente = Cliente::create([
+    'nombre' => 'Juan',
+    'apellido' => 'Pérez',
+    'email' => 'juan.perez@email.com',
+    'telefono' => '+57 300 123 4567',
+    'estado' => 'activo',
+    'segmento' => 'regular',
+    'total_compras' => 0
+]);
+```
+
+### Querying Clients with Related Data
+
+```php
+// Get all clients with their sales and invoices
+$clientes = Cliente::with(['ventas', 'facturas', 'mensajes'])->get();
+
+foreach ($clientes as $cliente) {
+    $total_sales = $cliente->ventas->count();
+    $pending_invoices = $cliente->facturas()->where('estado', 'pendiente')->count();
+    $unread_messages = $cliente->mensajes()->where('leido', false)->count();
+}
+```
+
+### Updating Client Segment
+
+```php
+$cliente = Cliente::find(1);
+
+// Upgrade to premium based on purchases
+if ($cliente->total_compras >= 21) {
+    $cliente->segmento = 'premium';
+    $cliente->save();
+}
+```
+
+### Finding Premium Active Clients
+
+```php
+$premium_activos = Cliente::where('segmento', 'premium')
+    ->where('estado', 'activo')
+    ->orderBy('total_compras', 'desc')
+    ->get();
+```
+
+### Client Statistics
+
+```php
+// Total clients by segment
+$premium = Cliente::where('segmento', 'premium')->count();
+$regular = Cliente::where('segmento', 'regular')->count();
+$ocasional = Cliente::where('segmento', 'ocasional')->count();
+
+// Average purchases per client
+$avg_compras = Cliente::avg('total_compras');
+
+// Clients with unread messages
+$con_mensajes = Cliente::whereHas('mensajes', function($query) {
+    $query->where('leido', false);
+})->count();
+```
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="Unique Email" icon="envelope">
+    Email addresses must be unique across all clients
+  </Card>
+  <Card title="Full Name Tracking" icon="user">
+    Separate first and last name fields for better organization
+  </Card>
+  <Card title="Optional Phone" icon="phone">
+    Telephone field is nullable for flexibility
+  </Card>
+  <Card title="Purchase Counter" icon="shopping-cart">
+    Automatic tracking of total purchases per client
+  </Card>
+  <Card title="Three-Tier Segmentation" icon="sitemap">
+    Premium, Regular, and Occasional categories
+  </Card>
+  <Card title="Status Toggle" icon="power-off">
+    Active/Inactive status for engagement tracking
+  </Card>
+  <Card title="Cascade Relations" icon="link">
+    Deleting a client removes all related sales, invoices, and messages
+  </Card>
+  <Card title="Default Values" icon="cog">
+    New clients default to 'activo' status and 'regular' segment
+  </Card>
+  <Card title="Timestamp Tracking" icon="clock">
+    Automatic created_at and updated_at timestamps
+  </Card>
+</CardGroup>

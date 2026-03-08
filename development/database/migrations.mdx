@@ -1,0 +1,213 @@
+---
+title: Database Migrations
+description: Learn how to create and manage database migrations in Dashboard Laravel
+---
+
+## Overview
+
+Dashboard Laravel uses Laravel's migration system to manage database schema changes. Migrations are version control for your database, allowing your team to define and share the application's database schema definition.
+
+## Available Migrations
+
+The application includes the following migration files:
+
+<Accordion title="Core Laravel Migrations">
+
+### users, password_reset_tokens, sessions
+**File:** `0001_01_01_000000_create_users_table.php`
+
+Creates the authentication system tables including users, password reset tokens, and session management.
+
+### cache
+**File:** `0001_01_01_000001_create_cache_table.php`
+
+Creates cache storage tables for improved performance.
+
+### jobs
+**File:** `0001_01_01_000002_create_jobs_table.php`
+
+Creates queue job tables for background processing.
+
+</Accordion>
+
+<Accordion title="Application Migrations">
+
+### homes
+**File:** `2026_03_03_021430_create_homes_table.php`
+
+Creates the homes table for managing homepage content.
+
+### estadisticas
+**File:** `2026_03_03_022050_create_estadisticas_table.php`
+
+Creates the statistics table for tracking product sales and analytics.
+
+### clientes
+**File:** `2026_03_03_191644_create_clientes_table.php`
+
+Creates the clients/customers table with segmentation support.
+
+### ventas
+**File:** `2026_03_03_191659_create_ventas_table.php`
+
+Creates the sales table with foreign key relationship to clients.
+
+### facturas
+**File:** `2026_03_03_191710_create_facturas_table.php`
+
+Creates the invoices table linked to clients and sales.
+
+### mensajes
+**File:** `2026_03_03_191720_create_mensajes_table.php`
+
+Creates the messages table for client communication.
+
+### nosotros
+**File:** `2026_03_04_014709_create_nosotros_table.php`
+
+Creates the about us table for company information.
+
+</Accordion>
+
+## Running Migrations
+
+<Tabs>
+  <Tab title="Run All Migrations">
+    ```bash
+    php artisan migrate
+    ```
+    Executes all pending migrations in chronological order.
+  </Tab>
+  
+  <Tab title="Fresh Migration">
+    ```bash
+    php artisan migrate:fresh
+    ```
+    Drops all tables and re-runs all migrations. **Warning:** This will delete all data.
+  </Tab>
+  
+  <Tab title="With Seeding">
+    ```bash
+    php artisan migrate:fresh --seed
+    ```
+    Drops all tables, re-runs migrations, and seeds the database with test data.
+  </Tab>
+</Tabs>
+
+## Migration Commands
+
+<ParamField path="migrate:status" type="command">
+  Check the status of all migrations
+  ```bash
+  php artisan migrate:status
+  ```
+</ParamField>
+
+<ParamField path="migrate:rollback" type="command">
+  Rollback the last batch of migrations
+  ```bash
+  php artisan migrate:rollback
+  ```
+</ParamField>
+
+<ParamField path="migrate:reset" type="command">
+  Rollback all migrations
+  ```bash
+  php artisan migrate:reset
+  ```
+</ParamField>
+
+<ParamField path="migrate:refresh" type="command">
+  Rollback all migrations and re-run them
+  ```bash
+  php artisan migrate:refresh
+  ```
+</ParamField>
+
+## Example Migration
+
+Here's a real example from the clientes table migration:
+
+```php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('clientes', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre');
+            $table->string('apellido');
+            $table->string('email')->unique();
+            $table->string('telefono')->nullable();
+            $table->enum('estado', ['activo', 'inactivo'])->default('activo');
+            $table->enum('segmento', ['premium', 'regular', 'ocasional'])->default('regular');
+            $table->integer('total_compras')->default(0);
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('clientes');
+    }
+};
+```
+
+## Creating New Migrations
+
+To create a new migration:
+
+```bash
+php artisan make:migration create_table_name
+```
+
+For creating a table:
+```bash
+php artisan make:migration create_products_table --create=products
+```
+
+For modifying an existing table:
+```bash
+php artisan make:migration add_column_to_table --table=table_name
+```
+
+## Best Practices
+
+<Accordion title="Migration Guidelines">
+
+1. **Never modify existing migrations** that have been committed and run in production
+2. **Always create new migrations** for schema changes
+3. **Use descriptive names** for your migration files
+4. **Test rollback functionality** to ensure `down()` methods work correctly
+5. **Use foreign key constraints** to maintain referential integrity
+6. **Set default values** where appropriate to avoid null issues
+7. **Index frequently queried columns** for better performance
+
+</Accordion>
+
+## Foreign Key Example
+
+The ventas table demonstrates proper foreign key usage:
+
+```php
+Schema::create('ventas', function (Blueprint $table) {
+    $table->id();
+    $table->string('numero_orden')->unique();
+    $table->foreignId('cliente_id')
+          ->constrained('clientes')
+          ->onDelete('cascade');
+    $table->string('producto');
+    $table->decimal('total', 10, 2);
+    $table->enum('estado', ['completado', 'pendiente', 'en_camino', 'devuelto'])
+          ->default('pendiente');
+    $table->timestamps();
+});
+```
+
+The `onDelete('cascade')` ensures that when a client is deleted, all their sales are also deleted automatically.

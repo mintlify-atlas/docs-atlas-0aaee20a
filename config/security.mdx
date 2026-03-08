@@ -1,0 +1,359 @@
+---
+title: 'Security Configuration'
+description: 'Configure authentication, password policies, two-factor authentication, and session security'
+---
+
+## Overview
+
+Dashboard Laravel provides comprehensive security features to protect your application and user data. Configure authentication methods, password policies, two-factor authentication (2FA), and session management.
+
+<Warning>
+  Always use strong passwords and enable two-factor authentication for administrator accounts.
+</Warning>
+
+## Password Management
+
+### Changing Your Password
+
+Update your account password through the Security tab in the configuration panel.
+
+```blade
+<div class="card mb-4">
+  <div class="card-header">
+    <h5><i class="fas fa-key"></i> Cambiar Contraseña</h5>
+  </div>
+  <div class="card-body">
+    <div class="mb-3">
+      <label class="form-label">Contraseña Actual</label>
+      <input type="password" class="form-control" placeholder="••••••••">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Nueva Contraseña</label>
+      <input type="password" class="form-control" placeholder="••••••••">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Confirmar Nueva Contraseña</label>
+      <input type="password" class="form-control" placeholder="••••••••">
+    </div>
+    <button class="btn btn-warning">
+      <i class="fas fa-lock"></i> Actualizar Contraseña
+    </button>
+  </div>
+</div>
+```
+
+### Password Reset Configuration
+
+Configure password reset behavior in `config/auth.php`:
+
+```php
+'passwords' => [
+    'users' => [
+        'provider' => 'users',
+        'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+        'expire' => 60,
+        'throttle' => 60,
+    ],
+],
+```
+
+<Accordion title="Password Configuration Options">
+  **Key Settings**:
+  
+  - **provider**: User provider for password resets (`users`)
+  - **table**: Database table for reset tokens (`password_reset_tokens`)
+  - **expire**: Token expiration time in minutes (default: 60)
+  - **throttle**: Seconds between reset attempts (default: 60)
+  
+  These settings ensure secure password reset functionality with rate limiting.
+</Accordion>
+
+### Password Confirmation Timeout
+
+Control how long users can perform sensitive actions without re-entering their password:
+
+```php
+// config/auth.php
+'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+```
+
+<Info>
+  Default timeout is 10,800 seconds (3 hours). Adjust based on your security requirements.
+</Info>
+
+## Two-Factor Authentication (2FA)
+
+### Enabling 2FA
+
+Add an extra layer of security to your account with two-factor authentication.
+
+```blade
+<div class="card mb-4">
+  <div class="card-header">
+    <h5><i class="fas fa-shield-alt"></i> Autenticación de Dos Factores</h5>
+  </div>
+  <div class="card-body">
+    <p class="text-muted">Agrega una capa extra de seguridad a tu cuenta.</p>
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" id="2fa">
+      <label class="form-check-label" for="2fa">Activar 2FA</label>
+    </div>
+    <button class="btn btn-outline-success">
+      <i class="fas fa-qrcode"></i> Configurar 2FA
+    </button>
+  </div>
+</div>
+```
+
+<Tabs>
+  <Tab title="Setup Process">
+    **2FA Configuration Steps**:
+    
+    1. Toggle the "Activar 2FA" switch
+    2. Click "Configurar 2FA" button
+    3. Scan QR code with authenticator app
+    4. Enter verification code to confirm
+    5. Save backup codes securely
+    
+    <Note>
+      Recommended authenticator apps: Google Authenticator, Authy, Microsoft Authenticator
+    </Note>
+  </Tab>
+  
+  <Tab title="Best Practices">
+    **2FA Security Tips**:
+    
+    - Always save backup codes in a secure location
+    - Never share authentication codes
+    - Enable 2FA for all administrator accounts
+    - Use time-based one-time passwords (TOTP)
+    - Keep authenticator app updated
+  </Tab>
+</Tabs>
+
+## Authentication Configuration
+
+### Authentication Guards
+
+Laravel uses guards to define how users are authenticated for each request.
+
+```php
+// config/auth.php
+'defaults' => [
+    'guard' => env('AUTH_GUARD', 'web'),
+    'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+],
+
+'guards' => [
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
+    ],
+],
+```
+
+**Guard Configuration**:
+- **Default Guard**: `web` (session-based authentication)
+- **Driver**: `session` (uses Laravel's session system)
+- **Provider**: `users` (Eloquent user model)
+
+### User Providers
+
+Define how users are retrieved from your database:
+
+```php
+// config/auth.php
+'providers' => [
+    'users' => [
+        'driver' => 'eloquent',
+        'model' => env('AUTH_MODEL', App\Models\User::class),
+    ],
+],
+```
+
+<Info>
+  The Eloquent driver uses the User model to retrieve authentication data.
+</Info>
+
+## Session Security
+
+### Session Configuration
+
+Secure session management is critical for protecting user authentication.
+
+```php
+// config/session.php
+'driver' => env('SESSION_DRIVER', 'database'),
+'lifetime' => (int) env('SESSION_LIFETIME', 120),
+'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
+'encrypt' => env('SESSION_ENCRYPT', false),
+```
+
+<Accordion title="Session Settings Explained">
+  **Key Configuration Options**:
+  
+  | Setting | Default | Purpose |
+  |---------|---------|----------|
+  | `driver` | `database` | Where sessions are stored |
+  | `lifetime` | `120` | Session duration in minutes |
+  | `expire_on_close` | `false` | End session when browser closes |
+  | `encrypt` | `false` | Encrypt session data |
+  | `table` | `sessions` | Database table for sessions |
+  
+  <Note>
+    Database driver is recommended for production environments.
+  </Note>
+</Accordion>
+
+### Cookie Security
+
+Protect session cookies with secure configuration:
+
+```php
+// config/session.php
+'secure' => env('SESSION_SECURE_COOKIE'),
+'http_only' => env('SESSION_HTTP_ONLY', true),
+'same_site' => env('SESSION_SAME_SITE', 'lax'),
+```
+
+**Cookie Security Options**:
+
+<Tabs>
+  <Tab title="Secure Cookies">
+    ```php
+    'secure' => env('SESSION_SECURE_COOKIE')
+    ```
+    
+    When enabled, cookies are only sent over HTTPS connections.
+    
+    <Warning>
+      Always enable for production deployments with SSL/TLS.
+    </Warning>
+  </Tab>
+  
+  <Tab title="HTTP Only">
+    ```php
+    'http_only' => env('SESSION_HTTP_ONLY', true)
+    ```
+    
+    Prevents JavaScript from accessing cookie values, protecting against XSS attacks.
+    
+    <Info>
+      This should remain `true` for all deployments.
+    </Info>
+  </Tab>
+  
+  <Tab title="SameSite">
+    ```php
+    'same_site' => env('SESSION_SAME_SITE', 'lax')
+    ```
+    
+    Controls cookie behavior for cross-site requests, mitigating CSRF attacks.
+    
+    **Options**: `lax`, `strict`, `none`, `null`
+    
+    Default `lax` provides good security while allowing legitimate cross-site navigation.
+  </Tab>
+</Tabs>
+
+## CSRF Protection
+
+Laravel automatically protects against Cross-Site Request Forgery (CSRF) attacks.
+
+### How CSRF Works
+
+All forms in Dashboard Laravel include CSRF tokens:
+
+```blade
+<form method="POST" action="/configuracion">
+    @csrf
+    <!-- Form fields -->
+</form>
+```
+
+<Info>
+  CSRF tokens are automatically validated on POST, PUT, PATCH, and DELETE requests.
+</Info>
+
+### CSRF Token Verification
+
+Laravel's middleware validates CSRF tokens for all state-changing requests:
+
+```php
+// Automatically applied to web routes
+protected $middlewareGroups = [
+    'web' => [
+        // ...
+        \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+    ],
+];
+```
+
+## Encryption
+
+### Application Key
+
+Laravel uses an encryption key for securing sensitive data:
+
+```php
+// config/app.php
+'cipher' => 'AES-256-CBC',
+'key' => env('APP_KEY'),
+```
+
+<Warning>
+  Never commit your `APP_KEY` to version control. Generate it using `php artisan key:generate`.
+</Warning>
+
+### Encrypted Session Data
+
+Optionally encrypt all session data:
+
+```php
+// config/session.php
+'encrypt' => env('SESSION_ENCRYPT', false),
+```
+
+## Security Best Practices
+
+<Accordion title="Production Security Checklist">
+  - [ ] Enable HTTPS and secure cookies
+  - [ ] Set strong `APP_KEY` encryption key
+  - [ ] Enable two-factor authentication for admins
+  - [ ] Use database session driver
+  - [ ] Set `http_only` to `true` for cookies
+  - [ ] Configure `same_site` to `lax` or `strict`
+  - [ ] Set appropriate session lifetime
+  - [ ] Implement password confirmation for sensitive actions
+  - [ ] Regularly rotate passwords
+  - [ ] Monitor authentication logs
+</Accordion>
+
+## Environment Variables
+
+Key security-related environment variables:
+
+```bash
+# .env
+APP_KEY=base64:your-encryption-key-here
+APP_DEBUG=false
+APP_ENV=production
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+
+AUTH_PASSWORD_TIMEOUT=10800
+```
+
+<Note>
+  Review and adjust these values based on your security requirements.
+</Note>
+
+## Related Resources
+
+- [Settings Configuration](/config/settings) - User profile and preferences
+- [Notifications](/config/notifications) - Security alerts and notifications
+- [User Authentication](/features/authentication) - Login and signup processes

@@ -1,0 +1,613 @@
+---
+title: 'Blade Views'
+description: 'Complete guide to Blade templating system and view architecture in Dashboard Laravel'
+---
+
+## Overview
+
+Dashboard Laravel uses **Blade**, Laravel's powerful templating engine. Blade provides template inheritance, component composition, and clean syntax for displaying dynamic data.
+
+<Note>
+  All views are located in `resources/views/` with the `.blade.php` extension.
+</Note>
+
+## View Structure
+
+The application includes 13 Blade template files:
+
+```
+resources/views/
+├── layouts/
+│   ├── app.blade.php        # Main dashboard layout
+│   └── auth.blade.php       # Authentication layout
+├── home.blade.php           # Login page
+├── signup.blade.php         # Registration page (placeholder)
+├── welcome.blade.php        # Dashboard home
+├── clientes.blade.php       # Client management
+├── ventas.blade.php         # Sales management
+├── facturas.blade.php       # Invoice management
+├── mensajes.blade.php       # Message center
+├── estadisticas.blade.php   # Statistics page
+├── analisis.blade.php       # Analytics page
+├── configuracion.blade.php  # Settings page
+└── nosotros.blade.php       # About page
+```
+
+## Template Inheritance
+
+Blade uses a parent-child inheritance pattern:
+
+<CardGroup cols={2}>
+  <Card title="Layout Templates" icon="layer-group">
+    Parent templates define structure and common elements
+  </Card>
+  <Card title="Content Views" icon="file">
+    Child views extend layouts and fill content sections
+  </Card>
+</CardGroup>
+
+### Blade Directives
+
+<Accordion title="@extends - Inherit Layout">
+  Specify which layout template to extend:
+  
+  ```blade
+  @extends('layouts.app')
+  @extends('layouts.auth')
+  ```
+  
+  This tells Blade that the view inherits from the specified layout.
+</Accordion>
+
+<Accordion title="@section - Define Content">
+  Define content for a specific section:
+  
+  ```blade
+  @section('title', 'Dashboard - Panel de Control')
+  
+  @section('content')
+      <h1>Welcome to Dashboard</h1>
+      <!-- Your content here -->
+  @endsection
+  ```
+  
+  Short syntax for simple values:
+  ```blade
+  @section('title', 'Page Title')
+  ```
+</Accordion>
+
+<Accordion title="@yield - Display Section">
+  In layout templates, define where child content appears:
+  
+  ```blade
+  <title>@yield('title', 'Dashboard')</title>
+  
+  <main>
+      @yield('content')
+  </main>
+  ```
+  
+  Second parameter is the default value if section is not defined.
+</Accordion>
+
+## Layout Templates
+
+### app.blade.php - Main Dashboard Layout
+
+Location: `resources/views/layouts/app.blade.php`
+
+The primary layout for authenticated dashboard pages with navigation and sidebar.
+
+```blade
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Dashboard')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    @yield('styles')
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <!-- Navigation content -->
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <!-- Sidebar content -->
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                @yield('content')
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @yield('scripts')
+</body>
+</html>
+```
+
+<Accordion title="app.blade.php Features">
+  **Layout Structure:**
+  - Top navigation bar with brand and main menu
+  - Left sidebar with dashboard navigation
+  - Main content area (9/10 columns wide)
+  - Responsive design with Bootstrap 5
+  
+  **Navigation Items:**
+  - Dashboard (Inicio)
+  - Estadísticas
+  - Usuarios (Clientes)
+  - Nosotros
+  - Configuración
+  - Home link
+  
+  **Sidebar Items:**
+  - Dashboard
+  - Análisis
+  - Ventas
+  - Clientes
+  - Facturas
+  - Mensajes
+  - Nosotros
+  
+  **Included Libraries:**
+  - Bootstrap 5.3.8 CSS & JS
+  - Font Awesome 6.0.0 icons
+  - Chart.js for data visualization
+  - Custom `dashboard.css` stylesheet
+  
+  **Sections:**
+  - `@yield('title')` - Page title
+  - `@yield('styles')` - Additional CSS
+  - `@yield('nav_*')` - Active nav indicator
+  - `@yield('side_*')` - Active sidebar indicator
+  - `@yield('content')` - Main content
+  - `@yield('scripts')` - Additional JavaScript
+</Accordion>
+
+### auth.blade.php - Authentication Layout
+
+Location: `resources/views/layouts/auth.blade.php`
+
+Minimal layout for login and registration pages.
+
+```blade
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Dashboard')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    @yield('styles')
+</head>
+<body>
+    @yield('content')
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    @yield('scripts')
+</body>
+</html>
+```
+
+<Accordion title="auth.blade.php Features">
+  **Purpose:** Clean, minimal layout for authentication screens.
+  
+  **Structure:**
+  - No navigation bars
+  - Full-width content area
+  - Essential libraries only
+  
+  **Use Cases:**
+  - Login page (`home.blade.php`)
+  - Registration page
+  - Password reset pages
+  - Any guest-only pages
+  
+  **Sections:**
+  - `@yield('title')` - Page title
+  - `@yield('styles')` - Additional CSS
+  - `@yield('content')` - Full content
+  - `@yield('scripts')` - Additional JavaScript
+</Accordion>
+
+## View Pages
+
+### home.blade.php - Login Page
+
+Location: `resources/views/home.blade.php`
+
+Authentication page with login and registration tabs.
+
+```blade
+@extends('layouts.auth')
+
+@section('title', 'Iniciar Sesión - Dashboard')
+
+@section('styles')
+<style>
+    /* Custom authentication page styles */
+    body { background: #f5f0e8; }
+    .auth-page { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+    /* ... additional styles ... */
+</style>
+@endsection
+
+@section('content')
+<div class="auth-page">
+    <div class="auth-left">
+        <!-- Branding and feature cards -->
+    </div>
+    
+    <div class="auth-right">
+        <div class="auth-form-wrapper">
+            <h1 class="auth-greeting">Buenos días 👋</h1>
+            
+            <!-- Tab navigation -->
+            <ul class="nav nav-tabs mb-4" id="authTab">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#signin">Iniciar sesión</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#signup">Crear cuenta</a></li>
+            </ul>
+            
+            <div class="tab-content">
+                <!-- Login form -->
+                <div class="tab-pane fade show active" id="signin">
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+                        <!-- Form fields -->
+                    </form>
+                </div>
+                
+                <!-- Registration form -->
+                <div class="tab-pane fade" id="signup">
+                    <form method="POST" action="{{ route('register') }}">
+                        @csrf
+                        <!-- Form fields -->
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+```
+
+<Accordion title="home.blade.php Features">
+  **Layout:** Split-screen design (desktop) with left brand panel and right form panel.
+  
+  **Left Panel:**
+  - Brand logo and tagline
+  - Decorative feature cards showing metrics
+  - Visual appeal with icons and statistics
+  
+  **Right Panel:**
+  - Tabbed interface (Login / Register)
+  - Login form with email, password, remember me
+  - Registration form with name, email, password, confirmation
+  
+  **Error Handling:**
+  ```blade
+  @if ($errors->any())
+      <div class="alert">
+          {{ $errors->first() }}
+      </div>
+  @endif
+  ```
+  
+  **Success Messages:**
+  ```blade
+  @if (session('success'))
+      <div class="alert">
+          {{ session('success') }}
+      </div>
+  @endif
+  ```
+  
+  **CSRF Protection:**
+  ```blade
+  @csrf
+  ```
+  All forms include CSRF token for security.
+  
+  **Route Generation:**
+  ```blade
+  <form method="POST" action="{{ route('login') }}">
+  <form method="POST" action="{{ route('register') }}">
+  ```
+</Accordion>
+
+### welcome.blade.php - Dashboard Home
+
+Location: `resources/views/welcome.blade.php`
+
+Main dashboard page with statistics and charts.
+
+```blade
+@extends('layouts.app')
+
+@section('title', 'Dashboard - Panel de Control')
+@section('nav_dashboard', 'active')
+@section('side_dashboard', 'active')
+
+@section('content')
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel de Control</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button class="btn btn-sm btn-outline-secondary">Compartir</button>
+            <button class="btn btn-sm btn-outline-secondary">Exportar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users"></i> Usuarios</h5>
+                <p class="card-text display-6">1,234</p>
+                <small class="text-white-50">+12% este mes</small>
+            </div>
+        </div>
+    </div>
+    <!-- Additional cards... -->
+</div>
+
+<!-- Chart -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><h5>Estadísticas de Ventas</h5></div>
+            <div class="card-body"><canvas id="salesChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <!-- Activity feed... -->
+</div>
+@endsection
+
+@section('scripts')
+<script>
+new Chart(document.getElementById('salesChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+        datasets: [{
+            label: 'Ventas',
+            data: [12,19,3,5,2,3],
+            borderColor: 'rgb(75,192,192)',
+            backgroundColor: 'rgba(75,192,192,0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: { responsive: true }
+});
+</script>
+@endsection
+```
+
+<Accordion title="welcome.blade.php Features">
+  **Dashboard Elements:**
+  - Page header with action buttons
+  - 4 statistics cards (Usuarios, Ventas, Crecimiento, Alertas)
+  - Sales chart using Chart.js
+  - Recent activity feed
+  - Data table with recent records
+  
+  **Active Navigation:**
+  ```blade
+  @section('nav_dashboard', 'active')
+  @section('side_dashboard', 'active')
+  ```
+  Highlights dashboard in both top nav and sidebar.
+  
+  **Chart Integration:**
+  Uses Chart.js in the `@section('scripts')` to render line chart.
+  
+  **Responsive Design:**
+  - Cards stack on mobile
+  - Chart adjusts to container width
+  - Table scrolls horizontally if needed
+</Accordion>
+
+## All View Pages
+
+<CardGroup cols={3}>
+  <Card title="clientes.blade.php" icon="users">
+    Client management interface with data table
+  </Card>
+  <Card title="ventas.blade.php" icon="shopping-cart">
+    Sales tracking and order management
+  </Card>
+  <Card title="facturas.blade.php" icon="file-invoice-dollar">
+    Invoice list and payment tracking
+  </Card>
+  <Card title="mensajes.blade.php" icon="envelope">
+    Message center for customer communications
+  </Card>
+  <Card title="estadisticas.blade.php" icon="chart-bar">
+    Statistics and metrics dashboard
+  </Card>
+  <Card title="analisis.blade.php" icon="chart-line">
+    Analytics and data insights
+  </Card>
+  <Card title="configuracion.blade.php" icon="cog">
+    Application settings and preferences
+  </Card>
+  <Card title="nosotros.blade.php" icon="info-circle">
+    About page with company information
+  </Card>
+  <Card title="signup.blade.php" icon="user-plus">
+    Registration page (alternative view)
+  </Card>
+</CardGroup>
+
+## Blade Syntax Features
+
+### Displaying Data
+
+```blade
+{{ $variable }}                    <!-- Escaped output -->
+{!! $html !!}                      <!-- Unescaped HTML -->
+{{ $variable ?? 'default' }}       <!-- With default value -->
+```
+
+### Control Structures
+
+<Accordion title="Conditionals">
+  ```blade
+  @if ($condition)
+      <!-- Content -->
+  @elseif ($other)
+      <!-- Content -->
+  @else
+      <!-- Content -->
+  @endif
+  
+  @unless ($condition)
+      <!-- Shown when condition is false -->
+  @endunless
+  
+  @isset($variable)
+      <!-- Shown if variable is set -->
+  @endisset
+  
+  @empty($variable)
+      <!-- Shown if variable is empty -->
+  @endempty
+  ```
+</Accordion>
+
+<Accordion title="Loops">
+  ```blade
+  @foreach ($items as $item)
+      {{ $item->name }}
+  @endforeach
+  
+  @for ($i = 0; $i < 10; $i++)
+      {{ $i }}
+  @endfor
+  
+  @while ($condition)
+      <!-- Content -->
+  @endwhile
+  
+  @forelse ($items as $item)
+      {{ $item }}
+  @empty
+      <p>No items found</p>
+  @endforelse
+  ```
+</Accordion>
+
+### Form Helpers
+
+```blade
+@csrf                              <!-- CSRF token -->
+@method('PUT')                     <!-- Method spoofing -->
+
+{{ route('name') }}                <!-- Named route URL -->
+{{ asset('css/app.css') }}         <!-- Asset URL -->
+{{ old('field') }}                 <!-- Old input value -->
+```
+
+### Error Handling
+
+```blade
+@if ($errors->any())
+    <div class="alert alert-danger">
+        @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </div>
+@endif
+
+@error('email')
+    <span class="error">{{ $message }}</span>
+@enderror
+```
+
+### Session Messages
+
+```blade
+@if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+```
+
+## Asset Management
+
+### Including Assets
+
+```blade
+<!-- CSS -->
+<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+
+<!-- JavaScript -->
+<script src="{{ asset('js/app.js') }}"></script>
+
+<!-- Images -->
+<img src="{{ asset('images/logo.png') }}" alt="Logo">
+```
+
+### External Libraries
+
+The application uses CDN-hosted libraries:
+
+- **Bootstrap 5.3.8** - UI framework
+- **Font Awesome 6.0.0** - Icons
+- **Chart.js** - Data visualization
+
+## View Organization Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Layouts" icon="layer-group">
+    Store reusable layouts in `layouts/` subdirectory
+  </Card>
+  <Card title="Partials" icon="puzzle-piece">
+    Extract repeated sections into partial views
+  </Card>
+  <Card title="Components" icon="cube">
+    Use Blade components for reusable UI elements
+  </Card>
+  <Card title="Naming" icon="tag">
+    Name views to match their routes for clarity
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Controllers" icon="code" href="/development/controllers">
+    Learn how controllers pass data to views
+  </Card>
+  <Card title="Models" icon="database" href="/development/models">
+    Understand data retrieval for views
+  </Card>
+  <Card title="Design System" icon="palette" href="/development/frontend/design-system">
+    Customize views and styling
+  </Card>
+</CardGroup>

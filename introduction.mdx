@@ -1,0 +1,145 @@
+---
+title: Introduction to Dashboard Laravel
+description: A comprehensive administrative dashboard built with Laravel 11, Bootstrap 5, and PostgreSQL for learning modern web development
+---
+
+## Overview
+
+**Dashboard Laravel** is a full-featured administrative dashboard application built with Laravel 11 that demonstrates modern web development practices and Laravel's core features. This project serves as both a learning resource for developers exploring Laravel 11 and a practical starting point for building administrative interfaces.
+
+<Info>
+This is an academic project designed for the Advanced Programming course (2026), showcasing real-world application of Laravel concepts.
+</Info>
+
+## What is Dashboard Laravel?
+
+Dashboard Laravel is a complete administrative control panel that implements:
+
+- **Named routing system** with Laravel's `->name()` convention
+- **Reusable blade layouts** using `@extends` and `@yield` directives
+- **11 complete Blade views** covering all dashboard modules
+- **Full authentication system** with login, registration, and logout
+- **Eloquent ORM models** with PostgreSQL migrations
+- **Responsive Soft UI design** with custom styling
+- **Interactive Chart.js visualizations**
+- **Complete PQRS form** for customer feedback
+- **Image gallery** with embedded video tutorials
+
+## Key Features
+
+Dashboard Laravel includes the following modules:
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock">
+    Complete login, registration, and logout with form validation and bcrypt password hashing
+  </Card>
+  
+  <Card title="Dashboard Analytics" icon="chart-line">
+    Real-time metrics with 4 KPI cards and interactive line charts for data visualization
+  </Card>
+  
+  <Card title="Statistics" icon="chart-bar">
+    Four Chart.js visualizations: sales trends, gender distribution, top products, and sales breakdown
+  </Card>
+  
+  <Card title="Analytics" icon="magnifying-glass-chart">
+    Web traffic analysis, conversion tracking, traffic sources, and most visited pages
+  </Card>
+  
+  <Card title="Sales Management" icon="shopping-cart">
+    Order listing with status tracking: Completed, Pending, In Transit
+  </Card>
+  
+  <Card title="Client Management" icon="users">
+    Customer administration with segmentation: Premium, Regular, Occasional
+  </Card>
+  
+  <Card title="Invoicing" icon="file-invoice">
+    Payment status tracking with filters: Paid, Pending, Overdue
+  </Card>
+  
+  <Card title="Messaging" icon="envelope">
+    Inbox with chat panel and unread message counter
+  </Card>
+  
+  <Card title="Settings" icon="gear">
+    Tabbed interface: Profile, Security (2FA), Notifications, System configuration
+  </Card>
+  
+  <Card title="About Us" icon="info-circle">
+    Team information, gallery, embedded video tutorial, and PQRS form
+  </Card>
+</CardGroup>
+
+## Technology Stack
+
+Dashboard Laravel is built with modern technologies:
+
+| Component | Technology |
+|-----------|------------|
+| **Backend** | Laravel 11 / PHP 8.2 |
+| **Database** | PostgreSQL 15 |
+| **Frontend** | Bootstrap 5.3 (CDN) + Custom CSS |
+| **Charts** | Chart.js (CDN) |
+| **Icons** | Font Awesome 6 (CDN) |
+| **Typography** | DM Serif Display + DM Sans (Google Fonts) |
+| **Package Manager** | Composer |
+| **CLI** | Laravel Artisan |
+
+## Who Should Use This?
+
+Dashboard Laravel is ideal for:
+
+- **Laravel Beginners** learning Laravel 11 fundamentals
+- **PHP Developers** exploring modern framework patterns
+- **Students** working on academic projects or learning web development
+- **Developers** seeking a starting point for administrative dashboards
+- **Teams** looking for a reference implementation of Laravel best practices
+
+## What You'll Learn
+
+By exploring this project, you'll gain hands-on experience with:
+
+- Laravel routing with named routes
+- Blade templating and layout inheritance
+- Eloquent ORM and database migrations
+- Authentication and authorization
+- Form validation and error handling
+- Session management
+- PostgreSQL database integration
+- MVC architecture patterns
+- Soft UI design principles
+- Frontend integration with CDN resources
+
+## Database Models
+
+The application includes five core Eloquent models:
+
+<Note>
+All models follow Laravel naming conventions and include proper relationships.
+</Note>
+
+- **User** - Authentication and user management
+- **Cliente** (Client) - Customer information and segmentation
+- **Venta** (Sale) - Sales orders and transactions
+- **Factura** (Invoice) - Billing and payment tracking
+- **Mensaje** (Message) - Internal messaging system
+
+## Security Features
+
+Dashboard Laravel implements industry-standard security practices:
+
+- **Bcrypt password hashing** - Never stores passwords in plain text
+- **CSRF protection** - All forms include `@csrf` tokens
+- **Session regeneration** - Prevents Session Fixation attacks
+- **Server-side validation** - All input fields are validated
+- **SQL injection protection** - Eloquent ORM with prepared statements
+- **Remember me tokens** - Secure persistent authentication
+
+## Get Started
+
+Ready to explore Dashboard Laravel? Head over to the [Installation Guide](/installation) to set up your development environment and get the application running in minutes.
+
+<Card title="Installation Guide" icon="rocket" href="/installation">
+  Step-by-step instructions to clone, configure, and launch Dashboard Laravel
+</Card>

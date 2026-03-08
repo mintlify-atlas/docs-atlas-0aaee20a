@@ -1,0 +1,557 @@
+---
+title: "Design System"
+description: "Soft UI design system with CSS variables, typography, and component styles for Dashboard Laravel"
+---
+
+# Design System
+
+Dashboard Laravel uses a custom **Soft UI design system** built on Bootstrap 5.3 with a warm, modern aesthetic. The design features soft colors, gentle shadows, and smooth transitions.
+
+## Color Palette
+
+The design system uses CSS custom properties defined in `public/css/dashboard.css`:
+
+### Primary Colors
+
+```css public/css/dashboard.css
+:root {
+    --cream:        #f5f0e8;
+    --cream-dark:   #ede8de;
+    --sidebar-bg:   #1a1a1a;
+    --sidebar-text: #a0a0a0;
+    --sidebar-active: #ffffff;
+}
+```
+
+<CardGroup cols={3}>
+  <Card>
+    <div style={{backgroundColor: '#f5f0e8', height: '80px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Cream** `#f5f0e8`  
+    Main background color
+  </Card>
+  <Card>
+    <div style={{backgroundColor: '#ede8de', height: '80px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Cream Dark** `#ede8de`  
+    Secondary background
+  </Card>
+  <Card>
+    <div style={{backgroundColor: '#1a1a1a', height: '80px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Sidebar** `#1a1a1a`  
+    Dark sidebar theme
+  </Card>
+</CardGroup>
+
+### Card Colors
+
+Soft, pastel colors for cards and badges:
+
+```css public/css/dashboard.css
+:root {
+    --card-yellow:  #e8d44d;
+    --card-pink:    #f2a7c3;
+    --card-green:   #8fbb6e;
+    --card-blue:    #a8c8e8;
+    --card-lavender:#c5b8e8;
+    --card-peach:   #f5b89a;
+    --card-mint:    #8fd4c0;
+}
+```
+
+<CardGroup cols={4}>
+  <Card>
+    <div style={{backgroundColor: '#e8d44d', height: '60px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Yellow** `#e8d44d`
+  </Card>
+  <Card>
+    <div style={{backgroundColor: '#f2a7c3', height: '60px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Pink** `#f2a7c3`
+  </Card>
+  <Card>
+    <div style={{backgroundColor: '#8fbb6e', height: '60px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Green** `#8fbb6e`
+  </Card>
+  <Card>
+    <div style={{backgroundColor: '#a8c8e8', height: '60px', borderRadius: '12px', marginBottom: '8px'}}></div>
+    **Blue** `#a8c8e8`
+  </Card>
+</CardGroup>
+
+### Text Colors
+
+```css public/css/dashboard.css
+:root {
+    --text-dark:    #1a1a1a;
+    --text-mid:     #555550;
+    --text-soft:    #888880;
+}
+```
+
+## Typography
+
+Dashboard Laravel uses two Google Fonts for a sophisticated typography system:
+
+### Font Families
+
+```css public/css/dashboard.css
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Serif Display', serif;
+    color: var(--text-dark);
+    font-weight: 400;
+    letter-spacing: -0.3px;
+}
+```
+
+<Tabs>
+  <Tab title="Headings">
+    ```css
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'DM Serif Display', serif;
+        color: var(--text-dark);
+        font-weight: 400;
+        letter-spacing: -0.3px;
+    }
+
+    h1.h2 {
+        font-size: 1.6rem;
+    }
+    ```
+    
+    **DM Serif Display** is used for all headings, giving the dashboard an elegant, professional feel.
+  </Tab>
+  <Tab title="Body Text">
+    ```css
+    body {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    small, .small {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 400;
+    }
+    ```
+    
+    **DM Sans** is used for body text, labels, and UI elements for optimal readability.
+  </Tab>
+  <Tab title="Card Text">
+    ```css
+    .card-title {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        font-size: 0.78rem;
+        letter-spacing: 0.3px;
+        color: var(--text-dark);
+    }
+
+    .card-text {
+        font-family: 'DM Serif Display', serif !important;
+        font-size: 2.4rem !important;
+        font-weight: 400;
+        color: var(--text-dark) !important;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Info>
+**Typography Strategy**: Use DM Serif Display for headings and large numbers, DM Sans for UI elements and body text.
+</Info>
+
+## Border Radius
+
+Consistent rounded corners across all components:
+
+```css public/css/dashboard.css
+:root {
+    --radius-lg:    20px;
+    --radius-md:    14px;
+    --radius-sm:    10px;
+}
+
+.card {
+    border-radius: var(--radius-lg) !important;
+}
+
+.btn {
+    border-radius: var(--radius-sm) !important;
+}
+```
+
+## Shadows
+
+Soft, layered shadows for depth:
+
+```css public/css/dashboard.css
+:root {
+    --shadow-soft:  0 2px 16px rgba(0,0,0,0.07);
+    --shadow-card:  0 4px 24px rgba(0,0,0,0.09);
+    --shadow-hover: 0 8px 32px rgba(0,0,0,0.13);
+}
+
+.card {
+    box-shadow: var(--shadow-card);
+    transition: all 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+}
+```
+
+## Component Styles
+
+### Cards
+
+<Tabs>
+  <Tab title="Base Card">
+    ```css public/css/dashboard.css
+    .card {
+        background: #fff !important;
+        border: none !important;
+        border-radius: var(--radius-lg) !important;
+        box-shadow: var(--shadow-card);
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+        padding: 1rem 1.3rem;
+    }
+
+    .card-body { 
+        padding: 1.3rem; 
+    }
+    ```
+  </Tab>
+  <Tab title="Colored Cards">
+    ```css public/css/dashboard.css
+    .card.bg-primary {
+        background: var(--card-yellow) !important;
+        border: none !important;
+        box-shadow: var(--shadow-card) !important;
+    }
+
+    .card.bg-success {
+        background: var(--card-green) !important;
+    }
+
+    .card.bg-warning {
+        background: var(--card-peach) !important;
+    }
+
+    .card.bg-danger {
+        background: var(--card-pink) !important;
+    }
+
+    .card.bg-info {
+        background: var(--card-blue) !important;
+    }
+
+    .card.bg-secondary {
+        background: var(--card-lavender) !important;
+    }
+    ```
+  </Tab>
+  <Tab title="Decorative Elements">
+    ```css public/css/dashboard.css
+    .card.bg-primary::after,
+    .card.bg-success::after,
+    .card.bg-warning::after,
+    .card.bg-danger::after,
+    .card.bg-info::after,
+    .card.bg-secondary::after {
+        content: '';
+        position: absolute;
+        bottom: -20px; 
+        right: -20px;
+        width: 80px; 
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.25);
+        display: block;
+    }
+    ```
+    
+    Colored cards feature a decorative circle in the bottom-right corner.
+  </Tab>
+</Tabs>
+
+### Buttons
+
+```css public/css/dashboard.css
+.btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    border-radius: var(--radius-sm) !important;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--card-yellow) !important;
+    border: none !important;
+    color: var(--text-dark) !important;
+}
+
+.btn-primary:hover {
+    background: #d4c040 !important;
+    box-shadow: 0 4px 12px rgba(232,212,77,0.4);
+    transform: translateY(-1px);
+}
+```
+
+### Forms
+
+```css public/css/dashboard.css
+.form-control, .form-select {
+    background: #fff !important;
+    border: 1.5px solid rgba(0,0,0,0.12) !important;
+    color: var(--text-dark) !important;
+    border-radius: var(--radius-sm) !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+    transition: all 0.2s;
+    box-shadow: none !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background: #fff !important;
+    border-color: var(--card-yellow) !important;
+    box-shadow: 0 0 0 3px rgba(232,212,77,0.2) !important;
+}
+
+.form-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.4rem;
+}
+```
+
+### Tables
+
+```css public/css/dashboard.css
+.table {
+    color: var(--text-dark) !important;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.84rem;
+}
+
+.table thead th {
+    background: var(--cream-dark) !important;
+    color: var(--text-mid) !important;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(232,212,77,0.12) !important;
+    box-shadow: inset 3px 0 0 var(--card-yellow);
+}
+```
+
+### Badges
+
+```css public/css/dashboard.css
+.badge {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border-radius: 20px;
+    padding: 0.35em 0.8em;
+}
+
+.badge.bg-success  { 
+    background: var(--card-green) !important;   
+    color: #1a4a0a !important; 
+}
+
+.badge.bg-warning  { 
+    background: var(--card-peach) !important;   
+    color: #7a3010 !important; 
+}
+
+.badge.bg-danger   { 
+    background: var(--card-pink) !important;    
+    color: #6a0030 !important; 
+}
+```
+
+## Navigation
+
+### Sidebar (Dark Theme)
+
+```css public/css/dashboard.css
+#sidebar {
+    background: var(--sidebar-bg) !important;
+    min-height: calc(100vh - 60px);
+    padding-top: 1.5rem;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+}
+
+#sidebar .nav-link {
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    color: var(--sidebar-text) !important;
+    padding: 0.65rem 1.2rem !important;
+    border-left: 3px solid transparent;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    transition: all 0.2s ease;
+}
+
+#sidebar .nav-link:hover {
+    color: #fff !important;
+    background: rgba(255,255,255,0.08) !important;
+    border-left-color: var(--card-yellow);
+}
+
+#sidebar .nav-link.active {
+    color: #fff !important;
+    background: rgba(255,255,255,0.12) !important;
+    border-left-color: var(--card-yellow);
+}
+```
+
+<Note>
+The sidebar uses a **dark theme** (`#1a1a1a`) with yellow accent borders for active items, creating strong visual hierarchy.
+</Note>
+
+### Top Navbar
+
+```css public/css/dashboard.css
+.navbar {
+    background: var(--sidebar-bg) !important;
+    padding: 0.75rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 1.3rem;
+    color: #fff !important;
+}
+
+.navbar-brand i { 
+    color: var(--card-yellow) !important; 
+    margin-right: 6px; 
+}
+```
+
+## Responsive Design
+
+Built on **Bootstrap 5.3** with responsive grid system:
+
+```html
+<div class="row">
+    <div class="col-md-3"><!-- Card 1 --></div>
+    <div class="col-md-3"><!-- Card 2 --></div>
+    <div class="col-md-3"><!-- Card 3 --></div>
+    <div class="col-md-3"><!-- Card 4 --></div>
+</div>
+```
+
+## Animations
+
+Subtle fade-in animation for page transitions:
+
+```css public/css/dashboard.css
+main {
+    animation: fadeInUp 0.35s ease;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+```
+
+## Scrollbar Styling
+
+```css public/css/dashboard.css
+::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+}
+
+::-webkit-scrollbar-track { 
+    background: var(--cream-dark); 
+    border-radius: 10px; 
+}
+
+::-webkit-scrollbar-thumb { 
+    background: rgba(0,0,0,0.2); 
+    border-radius: 10px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+    background: rgba(0,0,0,0.35); 
+}
+```
+
+## Using the Design System
+
+### Example: Stat Cards
+
+```html
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-users"></i> Usuarios</h5>
+                <p class="card-text display-6">1,234</p>
+                <small class="text-white-50">+12% este mes</small>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+## Best Practices
+
+1. **Use CSS variables**: Reference `var(--card-yellow)` instead of hardcoded colors
+2. **Consistent spacing**: Use Bootstrap spacing utilities (`mb-3`, `pt-4`, etc.)
+3. **Maintain typography hierarchy**: Use DM Serif Display for headings, DM Sans for UI
+4. **Apply soft shadows**: Use `--shadow-card` and `--shadow-hover` variables
+5. **Leverage transitions**: Add smooth transitions for hover effects
+6. **Dark sidebar, light content**: Maintain the dark/light contrast
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Blade Templates" icon="code" href="/development/frontend/blade-templates">
+    Learn how to build views with Blade templating
+  </Card>
+  <Card title="Charts" icon="chart-line" href="/development/frontend/charts">
+    Add Chart.js data visualizations
+  </Card>
+</CardGroup>

@@ -1,0 +1,507 @@
+---
+title: Eloquent ORM
+description: Working with Eloquent models and relationships in Dashboard Laravel
+---
+
+## Overview
+
+Dashboard Laravel uses Eloquent ORM for database interactions. Eloquent provides an elegant, simple ActiveRecord implementation for working with your database, where each database table has a corresponding "Model" used to interact with that table.
+
+## Available Models
+
+The application includes the following Eloquent models:
+
+- `App\Models\User` - User authentication
+- `App\Models\Cliente` - Client/customer management
+- `App\Models\Venta` - Sales transactions
+- `App\Models\Factura` - Invoice management
+- `App\Models\Mensaje` - Client messaging
+- `App\Models\Estadisticas` - Analytics data
+- `App\Models\Home` - Homepage content
+- `App\Models\Nosotros` - About us information
+
+## Model Relationships
+
+### Cliente Model
+
+The Cliente model demonstrates one-to-many relationships:
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Cliente extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'nombre',
+        'apellido',
+        'email',
+        'telefono',
+        'estado',
+        'segmento',
+        'total_compras',
+    ];
+
+    // One-to-many: A client has many sales
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
+
+    // One-to-many: A client has many invoices
+    public function facturas()
+    {
+        return $this->hasMany(Factura::class);
+    }
+
+    // One-to-many: A client has many messages
+    public function mensajes()
+    {
+        return $this->hasMany(Mensaje::class);
+    }
+}
+```
+
+### Venta Model
+
+The Venta model shows both belongs-to and has-one relationships:
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Venta extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'numero_orden',
+        'cliente_id',
+        'producto',
+        'total',
+        'estado',
+    ];
+
+    // Many-to-one: A sale belongs to a client
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    // One-to-one: A sale has one invoice
+    public function factura()
+    {
+        return $this->hasOne(Factura::class);
+    }
+}
+```
+
+### Factura Model
+
+The Factura model with date casting:
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Factura extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'numero_factura',
+        'cliente_id',
+        'venta_id',
+        'concepto',
+        'monto',
+        'fecha_emision',
+        'fecha_vencimiento',
+        'estado',
+    ];
+
+    // Automatically cast dates
+    protected $casts = [
+        'fecha_emision'     => 'date',
+        'fecha_vencimiento' => 'date',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class);
+    }
+}
+```
+
+### Mensaje Model
+
+The Mensaje model with boolean casting:
+
+```php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Mensaje extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'cliente_id',
+        'contenido',
+        'tipo',
+        'leido',
+    ];
+
+    protected $casts = [
+        'leido' => 'boolean',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+}
+```
+
+## CRUD Operations
+
+### Creating Records
+
+<Tabs>
+  <Tab title="Single Record">
+    ```php
+    use App\Models\Cliente;
+
+    // Method 1: Create and save
+    $cliente = new Cliente();
+    $cliente->nombre = 'Juan';
+    $cliente->apellido = 'Pérez';
+    $cliente->email = 'juan@example.com';
+    $cliente->telefono = '555-0123';
+    $cliente->save();
+
+    // Method 2: Mass assignment
+    $cliente = Cliente::create([
+        'nombre' => 'María',
+        'apellido' => 'García',
+        'email' => 'maria@example.com',
+        'telefono' => '555-0124',
+        'segmento' => 'premium',
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="With Relationships">
+    ```php
+    use App\Models\Cliente;
+    use App\Models\Venta;
+
+    // Create a client and their first sale
+    $cliente = Cliente::create([
+        'nombre' => 'Carlos',
+        'apellido' => 'López',
+        'email' => 'carlos@example.com',
+    ]);
+
+    $venta = $cliente->ventas()->create([
+        'numero_orden' => 'ORD-' . time(),
+        'producto' => 'Laptop',
+        'total' => 1299.99,
+        'estado' => 'pendiente',
+    ]);
+    ```
+  </Tab>
+</Tabs>
+
+### Reading Records
+
+<Tabs>
+  <Tab title="Basic Queries">
+    ```php
+    use App\Models\Cliente;
+
+    // Get all clients
+    $clientes = Cliente::all();
+
+    // Find by primary key
+    $cliente = Cliente::find(1);
+
+    // Find or fail (throws 404 if not found)
+    $cliente = Cliente::findOrFail(1);
+
+    // First matching record
+    $cliente = Cliente::where('email', 'juan@example.com')->first();
+
+    // Get premium clients
+    $premium = Cliente::where('segmento', 'premium')->get();
+    ```
+  </Tab>
+  
+  <Tab title="With Relationships">
+    ```php
+    use App\Models\Cliente;
+
+    // Load a client with their sales
+    $cliente = Cliente::with('ventas')->find(1);
+
+    // Load multiple relationships
+    $cliente = Cliente::with(['ventas', 'facturas', 'mensajes'])->find(1);
+
+    // Access related records
+    foreach ($cliente->ventas as $venta) {
+        echo $venta->producto . ': $' . $venta->total;
+    }
+
+    // Count related records
+    $cliente = Cliente::withCount('ventas')->find(1);
+    echo $cliente->ventas_count;
+    ```
+  </Tab>
+  
+  <Tab title="Advanced Queries">
+    ```php
+    use App\Models\Venta;
+    use Illuminate\Support\Facades\DB;
+
+    // Sales with client information
+    $ventas = Venta::with('cliente')
+        ->where('estado', 'completado')
+        ->orderBy('created_at', 'desc')
+        ->take(10)
+        ->get();
+
+    // Active clients with total sales
+    $clientes = Cliente::where('estado', 'activo')
+        ->where('total_compras', '>', 0)
+        ->orderBy('total_compras', 'desc')
+        ->get();
+
+    // Sales total by client
+    $totals = Venta::select('cliente_id', DB::raw('SUM(total) as total_ventas'))
+        ->groupBy('cliente_id')
+        ->get();
+    ```
+  </Tab>
+</Tabs>
+
+### Updating Records
+
+<Tabs>
+  <Tab title="Single Record">
+    ```php
+    use App\Models\Cliente;
+
+    // Find and update
+    $cliente = Cliente::find(1);
+    $cliente->telefono = '555-9999';
+    $cliente->save();
+
+    // Update with mass assignment
+    $cliente = Cliente::find(1);
+    $cliente->update([
+        'telefono' => '555-9999',
+        'segmento' => 'premium',
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Multiple Records">
+    ```php
+    use App\Models\Cliente;
+
+    // Update all inactive clients
+    Cliente::where('estado', 'inactivo')
+        ->update(['segmento' => 'ocasional']);
+
+    // Increment total purchases
+    $cliente = Cliente::find(1);
+    $cliente->increment('total_compras');
+
+    // Increment by specific amount
+    $cliente->increment('total_compras', 5);
+    ```
+  </Tab>
+</Tabs>
+
+### Deleting Records
+
+<Tabs>
+  <Tab title="Single Delete">
+    ```php
+    use App\Models\Cliente;
+
+    // Find and delete
+    $cliente = Cliente::find(1);
+    $cliente->delete();
+
+    // Delete by ID
+    Cliente::destroy(1);
+
+    // Delete multiple by IDs
+    Cliente::destroy([1, 2, 3]);
+    ```
+  </Tab>
+  
+  <Tab title="Bulk Delete">
+    ```php
+    use App\Models\Mensaje;
+
+    // Delete all read messages
+    Mensaje::where('leido', true)->delete();
+
+    // Delete messages older than 30 days
+    Mensaje::where('created_at', '<', now()->subDays(30))->delete();
+    ```
+  </Tab>
+</Tabs>
+
+## Query Scopes
+
+Create reusable query scopes in your models:
+
+```php
+class Cliente extends Model
+{
+    // Local scope
+    public function scopeActivo($query)
+    {
+        return $query->where('estado', 'activo');
+    }
+
+    public function scopePremium($query)
+    {
+        return $query->where('segmento', 'premium');
+    }
+
+    public function scopeConCompras($query, $minCompras = 1)
+    {
+        return $query->where('total_compras', '>=', $minCompras);
+    }
+}
+
+// Usage
+$clientes = Cliente::activo()->premium()->get();
+$clientesActivos = Cliente::activo()->conCompras(5)->get();
+```
+
+## Relationship Queries
+
+### Querying Relationships
+
+```php
+use App\Models\Cliente;
+
+// Clients who have sales
+$clientesConVentas = Cliente::has('ventas')->get();
+
+// Clients with at least 5 sales
+$clientesActivos = Cliente::has('ventas', '>=', 5)->get();
+
+// Clients with pending sales
+$clientesPendientes = Cliente::whereHas('ventas', function ($query) {
+    $query->where('estado', 'pendiente');
+})->get();
+
+// Clients without invoices
+$sinFacturas = Cliente::doesntHave('facturas')->get();
+```
+
+### Eager Loading
+
+```php
+use App\Models\Cliente;
+
+// Load relationships efficiently
+$clientes = Cliente::with(['ventas', 'facturas'])->get();
+
+// Conditional eager loading
+$clientes = Cliente::with([
+    'ventas' => function ($query) {
+        $query->where('estado', 'completado');
+    }
+])->get();
+
+// Lazy eager loading
+$clientes = Cliente::all();
+$clientes->load('ventas');
+```
+
+## Accessors and Mutators
+
+Add custom attributes to your models:
+
+```php
+class Cliente extends Model
+{
+    // Accessor: get full name
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombre} {$this->apellido}";
+    }
+
+    // Mutator: format email before saving
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['email'] = strtolower($value);
+    }
+}
+
+// Usage
+$cliente = Cliente::find(1);
+echo $cliente->nombre_completo; // "Juan Pérez"
+```
+
+## Model Events
+
+Hook into model lifecycle events:
+
+```php
+class Venta extends Model
+{
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Before creating a sale
+        static::creating(function ($venta) {
+            if (!$venta->numero_orden) {
+                $venta->numero_orden = 'ORD-' . time();
+            }
+        });
+
+        // After creating a sale
+        static::created(function ($venta) {
+            // Increment client's total purchases
+            $venta->cliente->increment('total_compras');
+        });
+    }
+}
+```
+
+## Best Practices
+
+<Accordion title="Eloquent Best Practices">
+
+1. **Use mass assignment protection** - Always define `$fillable` or `$guarded`
+2. **Eager load relationships** - Avoid N+1 query problems with `with()`
+3. **Use query scopes** - Create reusable query logic
+4. **Leverage relationship methods** - Use `create()` on relationships instead of manual foreign key assignment
+5. **Cast attributes** - Define `$casts` for dates, booleans, JSON, etc.
+6. **Use transactions** - Wrap multiple operations in database transactions
+7. **Index foreign keys** - Ensure foreign key columns are indexed for performance
+
+</Accordion>

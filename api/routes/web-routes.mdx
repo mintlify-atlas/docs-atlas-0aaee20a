@@ -1,0 +1,160 @@
+---
+title: 'Web Routes'
+description: 'Complete overview of all web routes in Dashboard Laravel'
+---
+
+## Overview
+
+Dashboard Laravel defines all application routes in `routes/web.php`. The application includes authentication routes, dashboard pages, and various administrative sections.
+
+## Route List
+
+| Method | Path | Route Name | Controller/Action | Purpose |
+|--------|------|------------|-------------------|----------|
+| GET | `/` | home | AuthController@showLogin | Login page |
+| POST | `/login` | login | AuthController@login | Process login |
+| POST | `/logout` | logout | AuthController@logout | Process logout |
+| GET | `/signup` | signup | AuthController@showRegister | Registration page |
+| POST | `/signup` | register | AuthController@register | Process registration |
+| GET | `/dashboard` | dashboard | Closure | Dashboard home |
+| GET | `/estadisticas` | estadisticas | Closure | Statistics page |
+| GET | `/analisis` | analisis | Closure | Analysis page |
+| GET | `/ventas` | ventas | Closure | Sales page |
+| GET | `/clientes` | clientes | Closure | Customers page |
+| GET | `/facturas` | facturas | Closure | Invoices page |
+| GET | `/mensajes` | mensajes | Closure | Messages page |
+| GET | `/configuracion` | configuracion | Closure | Settings page |
+| GET | `/nosotros` | nosotros | Closure | About page |
+
+## Route Definitions
+
+### Authentication Routes
+
+<Tabs>
+  <Tab title="Login">
+    ```php
+    Route::get('/', [AuthController::class, 'showLogin'])->name('home');
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    ```
+    
+    <ParamField path="/" type="GET">
+      Displays the login form. Named route: `home`
+    </ParamField>
+    
+    <ParamField path="/login" type="POST">
+      Processes user authentication. Named route: `login`
+    </ParamField>
+  </Tab>
+  
+  <Tab title="Registration">
+    ```php
+    Route::get('/signup', [AuthController::class, 'showRegister'])->name('signup');
+    Route::post('/signup', [AuthController::class, 'register'])->name('register');
+    ```
+    
+    <ParamField path="/signup" type="GET">
+      Displays the registration form. Named route: `signup`
+    </ParamField>
+    
+    <ParamField path="/signup" type="POST">
+      Creates a new user account. Named route: `register`
+    </ParamField>
+  </Tab>
+  
+  <Tab title="Logout">
+    ```php
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    ```
+    
+    <ParamField path="/logout" type="POST">
+      Logs out the authenticated user. Named route: `logout`
+    </ParamField>
+  </Tab>
+</Tabs>
+
+### Dashboard Routes
+
+All dashboard routes use closures to return views directly:
+
+```php
+Route::get('/dashboard', fn() => view('welcome'))->name('dashboard');
+Route::get('/estadisticas', fn() => view('estadisticas'))->name('estadisticas');
+Route::get('/analisis', fn() => view('analisis'))->name('analisis');
+Route::get('/ventas', fn() => view('ventas'))->name('ventas');
+Route::get('/clientes', fn() => view('clientes'))->name('clientes');
+Route::get('/facturas', fn() => view('facturas'))->name('facturas');
+Route::get('/mensajes', fn() => view('mensajes'))->name('mensajes');
+Route::get('/configuracion', fn() => view('configuracion'))->name('configuracion');
+Route::get('/nosotros', fn() => view('nosotros'))->name('nosotros');
+```
+
+<Info>
+  All dashboard routes use simple closures that return Blade views. This is efficient for pages that don't require complex logic or data processing.
+</Info>
+
+#### Dashboard Pages
+
+<ParamField path="/dashboard" type="GET">
+  Main dashboard page displaying the welcome view
+</ParamField>
+
+<ParamField path="/estadisticas" type="GET">
+  Statistics and metrics page
+</ParamField>
+
+<ParamField path="/analisis" type="GET">
+  Data analysis and reporting page
+</ParamField>
+
+<ParamField path="/ventas" type="GET">
+  Sales management page
+</ParamField>
+
+<ParamField path="/clientes" type="GET">
+  Customer management page
+</ParamField>
+
+<ParamField path="/facturas" type="GET">
+  Invoice management page
+</ParamField>
+
+<ParamField path="/mensajes" type="GET">
+  Messaging and communications page
+</ParamField>
+
+<ParamField path="/configuracion" type="GET">
+  Application settings and configuration page
+</ParamField>
+
+<ParamField path="/nosotros" type="GET">
+  About page with company information
+</ParamField>
+
+## Using Named Routes
+
+All routes are named, allowing you to reference them in your Blade templates and controllers:
+
+```php
+// In Blade templates
+<a href="{{ route('dashboard') }}">Dashboard</a>
+<a href="{{ route('clientes') }}">Clientes</a>
+
+// In controllers
+return redirect()->route('login');
+return redirect()->route('dashboard');
+```
+
+<Note>
+  Named routes provide flexibility - you can change the URL without updating references throughout your application.
+</Note>
+
+## Route Organization
+
+The routes are organized into two main groups:
+
+1. **Authentication Routes** - Handle user login, registration, and logout
+2. **Dashboard Routes** - Application pages accessible after authentication
+
+<Info>
+  Currently, the route file doesn't show explicit middleware groups. Consider adding authentication middleware to protect dashboard routes.
+</Info>

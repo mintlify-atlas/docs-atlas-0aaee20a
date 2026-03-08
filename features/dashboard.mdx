@@ -1,0 +1,495 @@
+---
+title: 'Dashboard Overview'
+description: 'Main dashboard interface with KPI metrics, real-time charts, and activity monitoring'
+---
+
+# Dashboard Overview
+
+The main dashboard provides a comprehensive view of your application's key metrics, featuring KPI cards, interactive charts, and recent activity tracking.
+
+## Overview
+
+The dashboard is your central hub for monitoring business performance and user activity. It displays:
+
+<CardGroup cols={2}>
+  <Card title="KPI Metrics" icon="chart-simple">
+    Four key performance indicators with trend data
+  </Card>
+  <Card title="Sales Chart" icon="chart-line">
+    Interactive Chart.js visualization of sales trends
+  </Card>
+  <Card title="Recent Activity" icon="clock">
+    Real-time feed of system events and actions
+  </Card>
+  <Card title="Data Table" icon="table">
+    Paginated table with user data and actions
+  </Card>
+</CardGroup>
+
+## Route Configuration
+
+The dashboard is accessible at `/dashboard` and defined in `routes/web.php`:
+
+```php
+Route::get('/dashboard', fn() => view('welcome'))->name('dashboard');
+```
+
+<Note>
+  The dashboard view is located at `resources/views/welcome.blade.php`
+</Note>
+
+## Dashboard Layout
+
+The dashboard uses the app layout and extends it with the `@extends` directive:
+
+```php
+@extends('layouts.app')
+
+@section('title', 'Dashboard - Panel de Control')
+@section('nav_dashboard', 'active')
+@section('side_dashboard', 'active')
+
+@section('content')
+    <!-- Dashboard content -->
+@endsection
+```
+
+### Layout Features
+
+- **Navigation Highlighting**: `nav_dashboard` and `side_dashboard` set to `active`
+- **Page Title**: Dynamic title "Dashboard - Panel de Control"
+- **Responsive Design**: Mobile-friendly Bootstrap 5 grid system
+
+## Dashboard Header
+
+The header provides page context and action buttons:
+
+```html
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel de Control</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button class="btn btn-sm btn-outline-secondary">Compartir</button>
+            <button class="btn btn-sm btn-outline-secondary">Exportar</button>
+        </div>
+    </div>
+</div>
+```
+
+<Tabs>
+  <Tab title="Features">
+    - Responsive flexbox layout
+    - Action buttons (Share, Export)
+    - Bottom border separator
+    - Mobile-friendly wrapping
+  </Tab>
+  <Tab title="Classes">
+    - `d-flex`: Flexbox container
+    - `justify-content-between`: Space between items
+    - `flex-wrap`: Allow wrapping on small screens
+    - `flex-md-nowrap`: No wrap on medium+ screens
+  </Tab>
+</Tabs>
+
+## KPI Metrics Cards
+
+Four color-coded cards display key performance indicators:
+
+<Steps>
+  <Step title="Users Card (Primary)">
+    ```html
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-users"></i> Usuarios
+                </h5>
+                <p class="card-text display-6">1,234</p>
+                <small class="text-white-50">+12% este mes</small>
+            </div>
+        </div>
+    </div>
+    ```
+    
+    **Displays**: Total users (1,234) with 12% monthly growth
+  </Step>
+
+  <Step title="Sales Card (Success)">
+    ```html
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-shopping-cart"></i> Ventas
+                </h5>
+                <p class="card-text display-6">$12,345</p>
+                <small class="text-white-50">+25% este mes</small>
+            </div>
+        </div>
+    </div>
+    ```
+    
+    **Displays**: Total sales ($12,345) with 25% monthly growth
+  </Step>
+
+  <Step title="Growth Card (Warning)">
+    ```html
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line"></i> Crecimiento
+                </h5>
+                <p class="card-text display-6">+15%</p>
+                <small class="text-white-50">vs mes anterior</small>
+            </div>
+        </div>
+    </div>
+    ```
+    
+    **Displays**: Growth rate (15%) compared to previous month
+  </Step>
+
+  <Step title="Alerts Card (Danger)">
+    ```html
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-exclamation-triangle"></i> Alertas
+                </h5>
+                <p class="card-text display-6">3</p>
+                <small class="text-white-50">Requieren atención</small>
+            </div>
+        </div>
+    </div>
+    ```
+    
+    **Displays**: Active alerts (3) requiring attention
+  </Step>
+</Steps>
+
+### KPI Card Structure
+
+| Component | Class | Purpose |
+|-----------|-------|----------|
+| Icon | `fas fa-*` | Visual indicator |
+| Title | `card-title` | Metric name |
+| Value | `display-6` | Large primary number |
+| Trend | `text-white-50` | Comparison data |
+
+## Sales Chart
+
+Interactive line chart powered by Chart.js displaying sales trends:
+
+```html
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Estadísticas de Ventas</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Chart Configuration
+
+The chart is initialized in the `@section('scripts')` block:
+
+```javascript
+new Chart(document.getElementById('salesChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+        datasets: [{
+            label: 'Ventas',
+            data: [12, 19, 3, 5, 2, 3],
+            borderColor: 'rgb(75,192,192)',
+            backgroundColor: 'rgba(75,192,192,0.1)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+```
+
+<Accordion title="Chart Configuration Options">
+  **Chart Type**: `line` - Displays data as a continuous line
+  
+  **Labels**: Month abbreviations (Ene, Feb, Mar, Abr, May, Jun)
+  
+  **Dataset**:
+  - `label`: "Ventas" (Sales)
+  - `data`: [12, 19, 3, 5, 2, 3]
+  - `borderColor`: Teal line color
+  - `backgroundColor`: Semi-transparent fill
+  - `tension`: 0.3 (smooth curves)
+  - `fill`: true (area under line filled)
+  
+  **Options**:
+  - `responsive`: true (adapts to container size)
+</Accordion>
+
+<Warning>
+  The Chart.js library must be included in your layout template for charts to render properly.
+</Warning>
+
+## Recent Activity Feed
+
+Real-time activity list showing recent system events:
+
+```html
+<div class="col-md-4">
+    <div class="card">
+        <div class="card-header">
+            <h5>Actividad Reciente</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <i class="fas fa-user-plus text-success me-2"></i> 
+                    Nuevo usuario registrado
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-shopping-cart text-primary me-2"></i> 
+                    Venta completada
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-file-invoice text-warning me-2"></i> 
+                    Factura generada
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-envelope text-info me-2"></i> 
+                    Mensaje recibido
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+```
+
+### Activity Types
+
+<CardGroup cols={2}>
+  <Card title="New User" icon="user-plus">
+    Green icon - User registration event
+  </Card>
+  <Card title="Sale Completed" icon="shopping-cart">
+    Blue icon - Completed transaction
+  </Card>
+  <Card title="Invoice Generated" icon="file-invoice">
+    Yellow icon - Invoice creation
+  </Card>
+  <Card title="Message Received" icon="envelope">
+    Cyan icon - Incoming message
+  </Card>
+</CardGroup>
+
+## Data Table
+
+Paginated table displaying recent user data:
+
+```html
+<div class="row mt-2">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Datos Recientes</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Juan Pérez</td>
+                            <td>juan@example.com</td>
+                            <td>2023-10-01</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">Editar</button>
+                                <button class="btn btn-sm btn-danger">Eliminar</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>María García</td>
+                            <td>maria@example.com</td>
+                            <td>2023-10-02</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary">Editar</button>
+                                <button class="btn btn-sm btn-danger">Eliminar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+### Table Features
+
+<Tabs>
+  <Tab title="Styling">
+    - `table-striped`: Alternating row colors
+    - `table-hover`: Hover effect on rows
+    - Responsive Bootstrap styling
+  </Tab>
+  <Tab title="Columns">
+    - **ID**: Unique identifier
+    - **Nombre**: User name
+    - **Email**: Contact email
+    - **Fecha**: Registration date
+    - **Acciones**: Action buttons
+  </Tab>
+  <Tab title="Actions">
+    - **Editar**: Edit button (primary)
+    - **Eliminar**: Delete button (danger)
+  </Tab>
+</Tabs>
+
+## Complete Dashboard Code
+
+<Accordion title="View Full welcome.blade.php">
+```php
+@extends('layouts.app')
+
+@section('title', 'Dashboard - Panel de Control')
+@section('nav_dashboard', 'active')
+@section('side_dashboard', 'active')
+
+@section('content')
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel de Control</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button class="btn btn-sm btn-outline-secondary">Compartir</button>
+            <button class="btn btn-sm btn-outline-secondary">Exportar</button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3"><div class="card text-white bg-primary mb-3"><div class="card-body"><h5 class="card-title"><i class="fas fa-users"></i> Usuarios</h5><p class="card-text display-6">1,234</p><small class="text-white-50">+12% este mes</small></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-success mb-3"><div class="card-body"><h5 class="card-title"><i class="fas fa-shopping-cart"></i> Ventas</h5><p class="card-text display-6">$12,345</p><small class="text-white-50">+25% este mes</small></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-warning mb-3"><div class="card-body"><h5 class="card-title"><i class="fas fa-chart-line"></i> Crecimiento</h5><p class="card-text display-6">+15%</p><small class="text-white-50">vs mes anterior</small></div></div></div>
+    <div class="col-md-3"><div class="card text-white bg-danger mb-3"><div class="card-body"><h5 class="card-title"><i class="fas fa-exclamation-triangle"></i> Alertas</h5><p class="card-text display-6">3</p><small class="text-white-50">Requieren atención</small></div></div></div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><h5>Estadísticas de Ventas</h5></div>
+            <div class="card-body"><canvas id="salesChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><h5>Actividad Reciente</h5></div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-user-plus text-success me-2"></i> Nuevo usuario registrado</li>
+                    <li class="list-group-item"><i class="fas fa-shopping-cart text-primary me-2"></i> Venta completada</li>
+                    <li class="list-group-item"><i class="fas fa-file-invoice text-warning me-2"></i> Factura generada</li>
+                    <li class="list-group-item"><i class="fas fa-envelope text-info me-2"></i> Mensaje recibido</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header"><h5>Datos Recientes</h5></div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody>
+                        <tr><td>1</td><td>Juan Pérez</td><td>juan@example.com</td><td>2023-10-01</td><td><button class="btn btn-sm btn-primary">Editar</button> <button class="btn btn-sm btn-danger">Eliminar</button></td></tr>
+                        <tr><td>2</td><td>María García</td><td>maria@example.com</td><td>2023-10-02</td><td><button class="btn btn-sm btn-primary">Editar</button> <button class="btn btn-sm btn-danger">Eliminar</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@section('scripts')
+<script>
+new Chart(document.getElementById('salesChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: ['Ene','Feb','Mar','Abr','May','Jun'],
+        datasets: [{ label: 'Ventas', data: [12,19,3,5,2,3], borderColor: 'rgb(75,192,192)', backgroundColor: 'rgba(75,192,192,0.1)', tension: 0.3, fill: true }]
+    },
+    options: { responsive: true }
+});
+</script>
+@endsection
+```
+</Accordion>
+
+## Responsive Design
+
+The dashboard uses Bootstrap 5's responsive grid system:
+
+<CardGroup cols={3}>
+  <Card title="Mobile (< 768px)">
+    - Cards stack vertically
+    - Full width columns
+    - Simplified layout
+  </Card>
+  <Card title="Tablet (768px - 991px)">
+    - 2 cards per row
+    - Optimized spacing
+    - Readable charts
+  </Card>
+  <Card title="Desktop (≥ 992px)">
+    - 4 cards per row
+    - Full dashboard layout
+    - Side-by-side charts
+  </Card>
+</CardGroup>
+
+## Customization Tips
+
+<Note>
+  **Quick Customization:**
+  
+  1. **KPI Values**: Update the numbers in the card HTML
+  2. **Chart Data**: Modify the `data` array in the Chart.js configuration
+  3. **Colors**: Change Bootstrap color classes (`bg-primary`, `bg-success`, etc.)
+  4. **Icons**: Replace FontAwesome icon classes (`fa-users`, `fa-shopping-cart`, etc.)
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Statistics Module" icon="chart-bar" href="/features/statistics">
+    Explore detailed statistics with four chart types
+  </Card>
+  <Card title="Analytics Module" icon="chart-line" href="/features/analytics">
+    Learn about traffic and conversion tracking
+  </Card>
+</CardGroup>

@@ -1,0 +1,445 @@
+---
+title: 'Messages Module'
+description: 'Real-time messaging system with chat interface, unread notifications, and client communication tracking'
+---
+
+## Overview
+
+The Messages module provides a complete communication platform for client interaction. Track conversations, manage unread messages, and maintain chat history with integrated client profiles.
+
+<CardGroup cols={2}>
+  <Card title="Chat Interface" icon="comments">
+    Real-time chat interface with sent/received message tracking
+  </Card>
+  <Card title="Unread Counter" icon="bell">
+    Visual indicators for unread messages requiring attention
+  </Card>
+  <Card title="Client Integration" icon="user-circle">
+    Direct linking to client records for context
+  </Card>
+  <Card title="Message Types" icon="exchange-alt">
+    Distinguish between sent and received messages
+  </Card>
+</CardGroup>
+
+## Mensaje Model
+
+The `Mensaje` model handles all message operations:
+
+```php app/Models/Mensaje.php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Mensaje extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'cliente_id',
+        'contenido',
+        'tipo',
+        'leido',
+    ];
+
+    protected $casts = [
+        'leido' => 'boolean',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+}
+```
+
+### Model Relationships
+
+<Tabs>
+  <Tab title="Cliente Relationship">
+    Each message belongs to a client (`belongsTo`):
+    
+    ```php
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+    ```
+    
+    **Usage Example:**
+    ```php
+    $mensaje = Mensaje::find(1);
+    $cliente = $mensaje->cliente;
+    echo $cliente->nombre . ' ' . $cliente->apellido;
+    echo $cliente->email;
+    ```
+  </Tab>
+</Tabs>
+
+### Boolean Casting
+
+The model automatically casts the `leido` field to boolean:
+
+```php
+protected $casts = [
+    'leido' => 'boolean',
+];
+```
+
+This allows clean boolean operations:
+
+```php
+$mensaje = Mensaje::find(1);
+
+// Check if read
+if ($mensaje->leido) {
+    echo 'Message has been read';
+}
+
+// Mark as read
+$mensaje->leido = true;
+$mensaje->save();
+```
+
+## Database Schema
+
+The `mensajes` table structure from the migration:
+
+```php database/migrations/2026_03_03_191720_create_mensajes_table.php
+Schema::create('mensajes', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+    $table->text('contenido');
+    $table->enum('tipo', ['enviado', 'recibido'])->default('recibido');
+    $table->boolean('leido')->default(false);
+    $table->timestamps();
+});
+```
+
+### Table Fields
+
+| Field | Type | Constraints | Description |
+|-------|------|-------------|-------------|
+| `id` | bigint | Primary key | Unique message identifier |
+| `cliente_id` | foreignId | Required | Reference to clients table |
+| `contenido` | text | Required | Message content/body |
+| `tipo` | enum | Default: 'recibido' | Message direction |
+| `leido` | boolean | Default: false | Read status |
+| `timestamps` | timestamps | Auto | created_at, updated_at |
+
+### Foreign Key Constraint
+
+<Info>
+**Cascade Deletion**: When a client is deleted, all their messages are automatically removed from the system.
+</Info>
+
+## Message Types
+
+<Tabs>
+  <Tab title="Recibido">
+    **Received Messages**
+    
+    Messages sent by clients to the system/admin. This is the default type.
+    
+    ```php
+    Mensaje::where('tipo', 'recibido')->get();
+    ```
+    
+    **Displayed as:**
+    - Left-aligned chat bubbles
+    - Client message style
+    - Default status for new messages
+  </Tab>
+  
+  <Tab title="Enviado">
+    **Sent Messages**
+    
+    Messages sent from the system/admin to clients.
+    
+    ```php
+    Mensaje::where('tipo', 'enviado')->get();
+    ```
+    
+    **Displayed as:**
+    - Right-aligned chat bubbles
+    - Admin/system message style
+    - Response messages
+  </Tab>
+</Tabs>
+
+## Read Status
+
+Messages track whether they have been read:
+
+<CardGroup cols={2}>
+  <Card title="Unread (leido: false)" icon="envelope">
+    New messages requiring attention
+    ```php
+    Mensaje::where('leido', false)->count();
+    // Returns: 5 unread messages
+    ```
+  </Card>
+  <Card title="Read (leido: true)" icon="envelope-open">
+    Messages that have been viewed
+    ```php
+    Mensaje::where('leido', true)->count();
+    // Returns: 229 read messages
+    ```
+  </Card>
+</CardGroup>
+
+## Message View Features
+
+The messages interface (`mensajes.blade.php`) provides:
+
+### Dashboard Metrics
+
+<CardGroup cols={4}>
+  <Card title="Received" icon="inbox">
+    234 total messages in inbox
+  </Card>
+  <Card title="Unread" icon="envelope-open">
+    5 messages requiring attention
+  </Card>
+  <Card title="Sent" icon="paper-plane">
+    89 messages sent this month
+  </Card>
+  <Card title="Archived" icon="trash">
+    412 archived messages
+  </Card>
+</CardGroup>
+
+### Split-Panel Interface
+
+The interface is divided into two main sections:
+
+<Tabs>
+  <Tab title="Message List (Left Panel)">
+    **Inbox View**
+    
+    Displays all conversations with:
+    - Client name and avatar icon
+    - Message preview
+    - Timestamp (10:32 AM, Yesterday, etc.)
+    - Unread badge for new messages
+    - Scrollable list (max-height: 420px)
+    
+    **Features:**
+    - Search functionality
+    - Click to open conversation
+    - Visual distinction for unread messages
+  </Tab>
+  
+  <Tab title="Chat View (Right Panel)">
+    **Conversation Window**
+    
+    Active chat interface with:
+    - Client information header
+    - Online status indicator
+    - Message bubbles (received/sent)
+    - Timestamps for each message
+    - Archive and delete buttons
+    - Message input field with send button
+    
+    **Chat Bubbles:**
+    - Received: Left-aligned, light background
+    - Sent: Right-aligned, colored background
+  </Tab>
+</Tabs>
+
+### Notification Badge
+
+The page header displays unread message count:
+
+```html
+<h1>Mensajes <span class="badge bg-danger">5 nuevos</span></h1>
+```
+
+## Usage Examples
+
+### Creating a New Message
+
+```php
+use App\Models\Mensaje;
+
+// Received message from client
+$mensaje = Mensaje::create([
+    'cliente_id' => 1,
+    'contenido' => '¿Cuándo llega mi pedido?',
+    'tipo' => 'recibido',
+    'leido' => false
+]);
+
+// Sent message to client
+$respuesta = Mensaje::create([
+    'cliente_id' => 1,
+    'contenido' => 'Tu pedido llegará mañana.',
+    'tipo' => 'enviado',
+    'leido' => true // Sent messages are already "read"
+]);
+```
+
+### Querying Messages with Client Data
+
+```php
+// Get all unread messages with client info
+$mensajes_sin_leer = Mensaje::with('cliente')
+    ->where('leido', false)
+    ->where('tipo', 'recibido')
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+foreach ($mensajes_sin_leer as $mensaje) {
+    echo $mensaje->cliente->nombre . ': ' . $mensaje->contenido;
+}
+```
+
+### Marking Messages as Read
+
+```php
+// Mark single message as read
+$mensaje = Mensaje::find(1);
+$mensaje->leido = true;
+$mensaje->save();
+
+// Mark all client messages as read
+Mensaje::where('cliente_id', 1)
+    ->where('leido', false)
+    ->update(['leido' => true]);
+```
+
+### Getting Client Conversation
+
+```php
+// Get all messages for a specific client
+$conversacion = Mensaje::where('cliente_id', 1)
+    ->orderBy('created_at', 'asc')
+    ->get();
+
+foreach ($conversacion as $mensaje) {
+    $tipo = $mensaje->tipo === 'recibido' ? 'Client' : 'Admin';
+    echo "[{$tipo}] {$mensaje->contenido} ({$mensaje->created_at->format('H:i')})";
+}
+```
+
+### Unread Message Counter
+
+```php
+// Total unread messages
+$total_sin_leer = Mensaje::where('leido', false)
+    ->where('tipo', 'recibido')
+    ->count();
+
+// Unread messages per client
+$clientes_con_sin_leer = Mensaje::select('cliente_id', DB::raw('count(*) as total'))
+    ->where('leido', false)
+    ->where('tipo', 'recibido')
+    ->groupBy('cliente_id')
+    ->with('cliente')
+    ->get();
+```
+
+### Recent Messages
+
+```php
+use Carbon\Carbon;
+
+// Messages from today
+$hoy = Mensaje::whereDate('created_at', Carbon::today())
+    ->with('cliente')
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+// Messages from this week
+$esta_semana = Mensaje::whereBetween('created_at', [
+    Carbon::now()->startOfWeek(),
+    Carbon::now()->endOfWeek()
+])->count();
+```
+
+### Client Activity
+
+```php
+// Check if client has unread messages
+$cliente = Cliente::find(1);
+$tiene_sin_leer = $cliente->mensajes()
+    ->where('leido', false)
+    ->where('tipo', 'recibido')
+    ->exists();
+
+// Get last message from client
+$ultimo_mensaje = $cliente->mensajes()
+    ->latest()
+    ->first();
+```
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="Text Storage" icon="align-left">
+    Messages stored as TEXT for unlimited length
+  </Card>
+  <Card title="Direction Tracking" icon="arrows-alt-h">
+    Distinguish between sent and received messages
+  </Card>
+  <Card title="Boolean Read Status" icon="eye">
+    Efficient true/false read tracking
+  </Card>
+  <Card title="Client Integration" icon="link">
+    Direct relationship with client records
+  </Card>
+  <Card title="Default Values" icon="cog">
+    New messages default to 'recibido' and unread
+  </Card>
+  <Card title="Cascade Deletion" icon="trash">
+    Auto-delete when client is removed
+  </Card>
+  <Card title="Timestamp Tracking" icon="clock">
+    Automatic created_at for chronological sorting
+  </Card>
+  <Card title="Unread Counter" icon="bell">
+    Real-time notification badge
+  </Card>
+  <Card title="Chat Interface" icon="comment-dots">
+    Split-panel design for conversations
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Note>
+**Real-Time Updates**: Consider implementing WebSockets (Laravel Echo + Pusher) for real-time message delivery.
+
+**Auto-Read on View**: Automatically mark messages as read when the conversation is opened.
+
+**Notification System**: Send email or push notifications for new unread messages.
+
+**Message Archive**: Implement soft deletes for message archiving instead of permanent deletion.
+
+**Search Functionality**: Add full-text search across message content for better findability.
+</Note>
+
+## Integration Example
+
+Combining messages with client data:
+
+```php
+// Get clients with unread messages
+$clientes_activos = Cliente::whereHas('mensajes', function($query) {
+    $query->where('leido', false)
+          ->where('tipo', 'recibido');
+})
+->withCount(['mensajes as mensajes_sin_leer' => function($query) {
+    $query->where('leido', false)
+          ->where('tipo', 'recibido');
+}])
+->orderBy('mensajes_sin_leer', 'desc')
+->get();
+
+foreach ($clientes_activos as $cliente) {
+    echo "{$cliente->nombre}: {$cliente->mensajes_sin_leer} unread";
+}
+```

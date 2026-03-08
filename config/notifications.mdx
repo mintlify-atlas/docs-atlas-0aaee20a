@@ -1,0 +1,387 @@
+---
+title: 'Notification Settings'
+description: 'Configure email notifications, system alerts, and notification preferences'
+---
+
+## Overview
+
+Dashboard Laravel provides a flexible notification system for keeping users informed about important events. Configure email notifications, system alerts, and customize notification preferences through the settings panel.
+
+<Info>
+  All notification preferences are saved per user and can be customized individually.
+</Info>
+
+## Notification Preferences
+
+Access notification settings through the Notificaciones tab in the configuration panel.
+
+```blade
+<div class="card">
+  <div class="card-header">
+    <h5><i class="fas fa-bell"></i> Preferencias de Notificaciones</h5>
+  </div>
+  <div class="card-body">
+    <!-- Notification toggles -->
+  </div>
+</div>
+```
+
+## Email Notifications
+
+Configure which events trigger email notifications.
+
+### Available Email Notifications
+
+<Tabs>
+  <Tab title="Sales & Clients">
+    **Business Activity Notifications**
+    
+    ```blade
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox" id="n1" checked>
+      <label class="form-check-label" for="n1">Nueva venta realizada</label>
+    </div>
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox" id="n2" checked>
+      <label class="form-check-label" for="n2">Nuevo cliente registrado</label>
+    </div>
+    ```
+    
+    - **Nueva venta realizada**: Notification when a new sale is completed
+    - **Nuevo cliente registrado**: Alert when a new client signs up
+    
+    <Note>
+      These notifications help you stay informed about business activity in real-time.
+    </Note>
+  </Tab>
+  
+  <Tab title="Invoices">
+    **Financial Notifications**
+    
+    ```blade
+    <div class="form-check form-switch mb-2">
+      <input class="form-check-input" type="checkbox" id="n3">
+      <label class="form-check-label" for="n3">Factura vencida</label>
+    </div>
+    ```
+    
+    - **Factura vencida**: Alert for overdue invoices
+    
+    <Warning>
+      Enable invoice notifications to prevent missed payments and maintain cash flow.
+    </Warning>
+  </Tab>
+  
+  <Tab title="Messages">
+    **Communication Notifications**
+    
+    ```blade
+    <div class="form-check form-switch mb-4">
+      <input class="form-check-input" type="checkbox" id="n4" checked>
+      <label class="form-check-label" for="n4">Mensaje nuevo recibido</label>
+    </div>
+    ```
+    
+    - **Mensaje nuevo recibido**: Notification for new messages
+    
+    <Info>
+      Stay connected with instant notifications when clients or team members send messages.
+    </Info>
+  </Tab>
+</Tabs>
+
+## System Notifications
+
+Configure alerts related to system events and reports.
+
+### Security Alerts
+
+Receive notifications about security-related events:
+
+```blade
+<h6 class="text-muted mb-3">Notificaciones del Sistema</h6>
+<div class="form-check form-switch mb-2">
+  <input class="form-check-input" type="checkbox" id="n5" checked>
+  <label class="form-check-label" for="n5">Alertas de seguridad</label>
+</div>
+```
+
+**Security Alert Types**:
+- Failed login attempts
+- Password changes
+- New device logins
+- Account access from unusual locations
+- Security setting modifications
+
+<Warning>
+  It's strongly recommended to keep security alerts enabled for administrator accounts.
+</Warning>
+
+### Weekly Reports
+
+Optional summary reports delivered via email:
+
+```blade
+<div class="form-check form-switch mb-4">
+  <input class="form-check-input" type="checkbox" id="n6">
+  <label class="form-check-label" for="n6">Reportes semanales</label>
+</div>
+```
+
+<Accordion title="Weekly Report Contents">
+  Weekly reports include:
+  
+  - Sales summary and trends
+  - New client registrations
+  - Revenue statistics
+  - Outstanding invoices
+  - System performance metrics
+  - Key performance indicators (KPIs)
+  
+  Reports are sent every Monday morning with data from the previous week.
+</Accordion>
+
+## Email Configuration
+
+Configure email delivery settings in `config/mail.php`.
+
+### Mail Driver Setup
+
+```php
+// config/mail.php
+'default' => env('MAIL_MAILER', 'log'),
+
+'mailers' => [
+    'smtp' => [
+        'transport' => 'smtp',
+        'host' => env('MAIL_HOST', '127.0.0.1'),
+        'port' => env('MAIL_PORT', 2525),
+        'username' => env('MAIL_USERNAME'),
+        'password' => env('MAIL_PASSWORD'),
+        'timeout' => null,
+    ],
+    
+    'log' => [
+        'transport' => 'log',
+        'channel' => env('MAIL_LOG_CHANNEL'),
+    ],
+],
+```
+
+<Tabs>
+  <Tab title="SMTP">
+    **SMTP Mail Configuration**
+    
+    ```bash
+    # .env
+    MAIL_MAILER=smtp
+    MAIL_HOST=smtp.mailtrap.io
+    MAIL_PORT=2525
+    MAIL_USERNAME=your_username
+    MAIL_PASSWORD=your_password
+    MAIL_ENCRYPTION=tls
+    MAIL_FROM_ADDRESS=noreply@example.com
+    MAIL_FROM_NAME="${APP_NAME}"
+    ```
+    
+    <Note>
+      SMTP is the most common mail driver for production environments.
+    </Note>
+  </Tab>
+  
+  <Tab title="Services">
+    **Third-Party Mail Services**
+    
+    Dashboard Laravel supports multiple mail services:
+    
+    - **Mailgun**: High-volume transactional email
+    - **Postmark**: Fast, reliable email delivery
+    - **Amazon SES**: Scalable email service
+    - **Resend**: Modern email API
+    
+    ```php
+    'mailers' => [
+        'postmark' => [
+            'transport' => 'postmark',
+        ],
+        'ses' => [
+            'transport' => 'ses',
+        ],
+    ],
+    ```
+  </Tab>
+  
+  <Tab title="Development">
+    **Development Mail Testing**
+    
+    Use the log driver during development:
+    
+    ```bash
+    # .env
+    MAIL_MAILER=log
+    MAIL_LOG_CHANNEL=stack
+    ```
+    
+    Emails are written to `storage/logs/laravel.log` instead of being sent.
+    
+    <Info>
+      Perfect for testing without sending actual emails.
+    </Info>
+  </Tab>
+</Tabs>
+
+### Global From Address
+
+Set the default sender for all outgoing emails:
+
+```php
+// config/mail.php
+'from' => [
+    'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+    'name' => env('MAIL_FROM_NAME', 'Example'),
+],
+```
+
+## Notification Channels
+
+Laravel supports multiple notification channels beyond email.
+
+### Available Channels
+
+<Accordion title="Notification Channel Types">
+  **Built-in Channels**:
+  
+  | Channel | Description | Use Case |
+  |---------|-------------|----------|
+  | `mail` | Email notifications | Most common notification type |
+  | `database` | Store in database | In-app notification center |
+  | `broadcast` | Real-time via websockets | Live updates |
+  | `slack` | Slack channel messages | Team collaboration |
+  | `nexmo` | SMS messages | Critical alerts |
+  
+  <Note>
+    Channels can be combined to send notifications through multiple methods simultaneously.
+  </Note>
+</Accordion>
+
+## Saving Preferences
+
+Apply notification changes using the save button:
+
+```blade
+<button class="btn btn-primary">
+  <i class="fas fa-save"></i> Guardar Preferencias
+</button>
+```
+
+<Info>
+  Changes take effect immediately after saving and apply to future notifications.
+</Info>
+
+## In-App Notifications
+
+Dashboard Laravel can display notifications within the interface.
+
+### Notification Bell Icon
+
+Access recent notifications through the bell icon in the navigation:
+
+```blade
+<li class="nav-item">
+  <a class="nav-link" href="#">
+    <i class="fas fa-bell"></i>
+    <span class="badge bg-danger">3</span>
+  </a>
+</li>
+```
+
+**Features**:
+- Real-time notification counter
+- Dropdown with recent notifications
+- Mark as read functionality
+- Link to full notification history
+
+## Environment Configuration
+
+Key notification-related environment variables:
+
+```bash
+# .env - Mail Configuration
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+<Warning>
+  Never commit mail credentials to version control. Use environment variables only.
+</Warning>
+
+## Testing Notifications
+
+Test your notification configuration:
+
+```bash
+# Send a test email
+php artisan tinker
+>>> Notification::route('mail', 'test@example.com')
+...     ->notify(new TestNotification());
+```
+
+### Debugging Email
+
+Check email logs when using the log driver:
+
+```bash
+# View email log
+tail -f storage/logs/laravel.log
+```
+
+## Notification Best Practices
+
+<Accordion title="Optimization Tips">
+  **Performance & User Experience**:
+  
+  - Use queue for sending bulk notifications
+  - Allow users to control notification frequency
+  - Provide clear unsubscribe options
+  - Group similar notifications to avoid spam
+  - Use appropriate channels for urgency levels
+  - Test notifications before production deployment
+  - Monitor email delivery rates
+  - Keep notification copy concise and actionable
+  
+  <Note>
+    Respect user preferences to maintain engagement and trust.
+  </Note>
+</Accordion>
+
+## Queue Configuration
+
+For high-volume notifications, use Laravel's queue system:
+
+```php
+// Send notification via queue
+use Illuminate\Bus\Queueable;
+
+class NewSaleNotification extends Notification
+{
+    use Queueable;
+    
+    // Notification logic
+}
+```
+
+<Info>
+  Queued notifications improve application performance by processing notifications asynchronously.
+</Info>
+
+## Related Resources
+
+- [Settings Configuration](/config/settings) - User preferences and profile
+- [Security Configuration](/config/security) - Security alert settings
+- [Email Integration](/api/email) - Email API reference

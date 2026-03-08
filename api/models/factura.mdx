@@ -1,0 +1,264 @@
+---
+title: "Factura Model"
+description: "Invoice model with payment tracking, date management, and customer/sale relationships"
+---
+
+## Overview
+
+The `Factura` model represents invoices in the Dashboard Laravel application. Each invoice is linked to a customer and optionally to a sale (venta). The model includes payment status tracking, emission and due dates, and automatic date casting.
+
+<Note>
+  The Factura model provides complete invoice management with date casting for proper date handling and relationships to both customers and sales.
+</Note>
+
+## Model Details
+
+### Namespace
+```php
+App\Models\Factura
+```
+
+### Extends
+```php
+Illuminate\Database\Eloquent\Model
+```
+
+### Traits
+- `HasFactory` - Enables model factory support for testing and seeding
+
+## Fillable Attributes
+
+The following attributes are mass assignable:
+
+<ParamField path="numero_factura" type="string" required>
+  Unique invoice number identifier
+</ParamField>
+
+<ParamField path="cliente_id" type="integer" required>
+  Foreign key reference to the Cliente model
+</ParamField>
+
+<ParamField path="venta_id" type="integer">
+  Foreign key reference to the Venta model (optional)
+</ParamField>
+
+<ParamField path="concepto" type="string" required>
+  Invoice concept or description of billed items/services
+</ParamField>
+
+<ParamField path="monto" type="decimal" required>
+  Total invoice amount
+</ParamField>
+
+<ParamField path="fecha_emision" type="date" required>
+  Invoice emission/issue date (automatically cast to Carbon date)
+</ParamField>
+
+<ParamField path="fecha_vencimiento" type="date" required>
+  Invoice due date for payment (automatically cast to Carbon date)
+</ParamField>
+
+<ParamField path="estado" type="string" required>
+  Payment status of the invoice:
+  - `pendiente` - Payment pending
+  - `pagada` - Invoice paid
+  - `vencida` - Invoice overdue
+  - `cancelada` - Invoice cancelled
+</ParamField>
+
+## Attribute Casting
+
+The model automatically casts date attributes to Carbon instances:
+
+<ResponseField name="fecha_emision" type="date">
+  Cast to Carbon date instance for easy date manipulation
+</ResponseField>
+
+<ResponseField name="fecha_vencimiento" type="date">
+  Cast to Carbon date instance for due date calculations
+</ResponseField>
+
+## Relationships
+
+### cliente() - Belongs To
+
+Each invoice belongs to a single customer.
+
+```php
+public function cliente()
+{
+    return $this->belongsTo(Cliente::class);
+}
+```
+
+<ResponseField name="cliente" type="Cliente">
+  The customer (Cliente) associated with this invoice
+</ResponseField>
+
+**Usage:**
+```php
+$factura = Factura::find(1);
+$cliente = $factura->cliente; // Get the customer
+$emailCliente = $factura->cliente->email;
+```
+
+### venta() - Belongs To
+
+Each invoice can optionally belong to a sale.
+
+```php
+public function venta()
+{
+    return $this->belongsTo(Venta::class);
+}
+```
+
+<ResponseField name="venta" type="Venta">
+  The sale (Venta) associated with this invoice (nullable)
+</ResponseField>
+
+**Usage:**
+```php
+$factura = Factura::find(1);
+$venta = $factura->venta; // Get the related sale
+
+if ($factura->venta) {
+    $numeroOrden = $factura->venta->numero_orden;
+}
+```
+
+## Database Configuration
+
+### Table Name
+```php
+'facturas' // Laravel automatically pluralizes the model name
+```
+
+### Timestamps
+```php
+true // Uses created_at and updated_at timestamps
+```
+
+## Full Model Code
+
+<Expandable title="View Complete Factura Model Source Code">
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Factura extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'numero_factura',
+        'cliente_id',
+        'venta_id',
+        'concepto',
+        'monto',
+        'fecha_emision',
+        'fecha_vencimiento',
+        'estado',
+    ];
+
+    protected $casts = [
+        'fecha_emision'     => 'date',
+        'fecha_vencimiento' => 'date',
+    ];
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class);
+    }
+
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class);
+    }
+}
+```
+</Expandable>
+
+## Usage Examples
+
+### Creating a New Invoice
+```php
+use App\Models\Factura;
+use Carbon\Carbon;
+
+$factura = Factura::create([
+    'numero_factura' => 'INV-2026-001',
+    'cliente_id' => 1,
+    'venta_id' => 5,
+    'concepto' => 'Venta de laptop y accesorios',
+    'monto' => 1499.99,
+    'fecha_emision' => Carbon::today(),
+    'fecha_vencimiento' => Carbon::today()->addDays(30),
+    'estado' => 'pendiente',
+]);
+```
+
+### Working with Date Casting
+```php
+$factura = Factura::find(1);
+
+// Dates are automatically Carbon instances
+echo $factura->fecha_emision->format('d/m/Y'); // 08/03/2026
+echo $factura->fecha_vencimiento->diffForHumans(); // "in 30 days"
+
+// Check if invoice is overdue
+if ($factura->fecha_vencimiento->isPast() && $factura->estado === 'pendiente') {
+    $factura->update(['estado' => 'vencida']);
+}
+```
+
+### Accessing Invoice Relationships
+```php
+// Eager load relationships
+$factura = Factura::with(['cliente', 'venta'])->find(1);
+
+// Access customer information
+echo $factura->cliente->nombre . ' ' . $factura->cliente->apellido;
+
+// Access related sale if exists
+if ($factura->venta) {
+    echo "Order: " . $factura->venta->numero_orden;
+    echo "Product: " . $factura->venta->producto;
+}
+```
+
+### Querying Invoices by Status
+```php
+// Get all pending invoices
+$pendientes = Factura::where('estado', 'pendiente')->get();
+
+// Get overdue invoices
+$vencidas = Factura::where('estado', 'pendiente')
+    ->where('fecha_vencimiento', '<', Carbon::today())
+    ->get();
+
+// Get paid invoices for a customer
+$facturasPagadas = Factura::where('cliente_id', 1)
+    ->where('estado', 'pagada')
+    ->orderBy('fecha_emision', 'desc')
+    ->get();
+
+// Calculate total pending amount
+$totalPendiente = Factura::where('estado', 'pendiente')->sum('monto');
+```
+
+### Updating Invoice Status
+```php
+// Mark invoice as paid
+$factura = Factura::find(1);
+$factura->update(['estado' => 'pagada']);
+
+// Automatically mark overdue invoices
+Factura::where('estado', 'pendiente')
+    ->where('fecha_vencimiento', '<', Carbon::today())
+    ->update(['estado' => 'vencida']);
+```

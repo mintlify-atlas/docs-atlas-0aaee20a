@@ -1,0 +1,215 @@
+---
+title: 'Configuration Overview'
+description: 'Configure Dashboard Laravel settings, security, and notifications for your production environment'
+---
+
+# Configuration Overview
+
+Dashboard Laravel provides comprehensive configuration options to customize your administrative dashboard for different environments and use cases.
+
+## Configuration Sections
+
+<CardGroup cols={3}>
+  <Card title="Settings" icon="gear" href="/config/settings">
+    Profile, system, and appearance settings
+  </Card>
+  <Card title="Security" icon="shield" href="/config/security">
+    Password, 2FA, and authentication configuration
+  </Card>
+  <Card title="Notifications" icon="bell" href="/config/notifications">
+    Email and system notification preferences
+  </Card>
+</CardGroup>
+
+## Quick Configuration
+
+Dashboard Laravel uses Laravel's standard `.env` file for environment-specific configuration. All settings are centralized in the `config/` directory.
+
+### Essential Configuration Files
+
+<Accordion title="Database Configuration">
+  Configure your PostgreSQL connection in `.env`:
+  
+  ```env
+  DB_CONNECTION=pgsql
+  DB_HOST=127.0.0.1
+  DB_PORT=5432
+  DB_DATABASE=dashboard_db
+  DB_USERNAME=postgres
+  DB_PASSWORD=your_password
+  ```
+  
+  Defined in `config/database.php`
+</Accordion>
+
+<Accordion title="Application Settings">
+  Set your application environment:
+  
+  ```env
+  APP_NAME="Dashboard Laravel"
+  APP_ENV=local
+  APP_KEY=base64:your_generated_key_here
+  APP_DEBUG=true
+  APP_TIMEZONE=UTC
+  APP_URL=http://localhost
+  ```
+  
+  Defined in `config/app.php`
+</Accordion>
+
+<Accordion title="Session Configuration">
+  Manage user sessions:
+  
+  ```env
+  SESSION_DRIVER=database
+  SESSION_LIFETIME=120
+  SESSION_ENCRYPT=false
+  SESSION_PATH=/
+  SESSION_DOMAIN=null
+  ```
+  
+  Defined in `config/session.php`
+</Accordion>
+
+<Accordion title="Mail Configuration">
+  Configure email notifications:
+  
+  ```env
+  MAIL_MAILER=smtp
+  MAIL_HOST=smtp.mailtrap.io
+  MAIL_PORT=2525
+  MAIL_USERNAME=null
+  MAIL_PASSWORD=null
+  MAIL_ENCRYPTION=null
+  MAIL_FROM_ADDRESS="hello@example.com"
+  MAIL_FROM_NAME="${APP_NAME}"
+  ```
+  
+  Defined in `config/mail.php`
+</Accordion>
+
+## Configuration by Environment
+
+### Development Environment
+
+For local development:
+
+```bash
+APP_ENV=local
+APP_DEBUG=true
+LOG_LEVEL=debug
+```
+
+<Info>
+  Debug mode shows detailed error messages. **Never enable in production.**
+</Info>
+
+### Production Environment
+
+For production deployment:
+
+```bash
+APP_ENV=production
+APP_DEBUG=false
+LOG_LEVEL=error
+```
+
+<Warning>
+  Always disable debug mode and set appropriate log levels in production.
+</Warning>
+
+## Configuration Caching
+
+Laravel caches configuration files for better performance:
+
+```bash
+# Cache configuration
+php artisan config:cache
+
+# Clear cached configuration
+php artisan config:clear
+```
+
+<Note>
+  Changes to `.env` or config files require clearing the cache in production.
+</Note>
+
+## User Interface Configuration
+
+The dashboard includes a visual configuration interface at `/configuracion`:
+
+<Steps>
+  <Step title="Access Settings">
+    Navigate to the settings page using the sidebar menu or visit `/configuracion`
+  </Step>
+  
+  <Step title="Choose Configuration Tab">
+    Switch between Profile, Security, Notifications, and System tabs
+  </Step>
+  
+  <Step title="Update Settings">
+    Modify your preferences and save changes
+  </Step>
+  
+  <Step title="Verify Changes">
+    Check that your configuration updates are applied correctly
+  </Step>
+</Steps>
+
+## Configuration Options
+
+### Profile Settings
+- Personal information
+- Regional preferences
+- Display language
+- Timezone settings
+
+### Security Settings
+- Password management
+- Two-factor authentication (2FA)
+- Session timeout
+- Login notifications
+
+### Notification Settings
+- Email preferences
+- System alerts
+- Weekly reports
+- Message notifications
+
+### System Settings
+- Application name
+- Version display
+- Maintenance mode
+- Debug options
+
+## Environment Variables Reference
+
+Key environment variables used by Dashboard Laravel:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `APP_NAME` | Application name | Dashboard Laravel |
+| `APP_ENV` | Environment (local/production) | local |
+| `APP_DEBUG` | Debug mode (true/false) | true |
+| `APP_URL` | Application URL | http://localhost |
+| `DB_CONNECTION` | Database driver | pgsql |
+| `DB_DATABASE` | Database name | dashboard_db |
+| `SESSION_DRIVER` | Session storage | database |
+| `MAIL_MAILER` | Mail driver | smtp |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation Guide" icon="rocket" href="/installation">
+    Set up your environment and install dependencies
+  </Card>
+  <Card title="Security Configuration" icon="shield" href="/config/security">
+    Configure authentication and security features
+  </Card>
+  <Card title="Notification Setup" icon="bell" href="/config/notifications">
+    Set up email and system notifications
+  </Card>
+  <Card title="Settings Reference" icon="gear" href="/config/settings">
+    Explore all available settings
+  </Card>
+</CardGroup>
