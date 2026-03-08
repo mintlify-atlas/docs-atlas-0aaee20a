@@ -1,0 +1,149 @@
+{
+  "projectType": "saas",
+  "projectName": "Dashboard Laravel",
+  "projectDescription": "Administrative dashboard built with Laravel 11, featuring client management, sales tracking, invoicing, and analytics.",
+  "theme": "maple",
+  "primaryColor": "#94cb04",
+  "lightColor": "#545454",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "configuration"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/authentication",
+              "features/dashboard",
+              "features/statistics",
+              "features/analytics"
+            ]
+          },
+          {
+            "group": "Business Modules",
+            "pages": [
+              "modules/sales",
+              "modules/clients",
+              "modules/invoices",
+              "modules/messages"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "config/settings",
+              "config/security",
+              "config/notifications"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Architecture",
+            "pages": [
+              "development/structure",
+              "development/models",
+              "development/controllers",
+              "development/views"
+            ]
+          },
+          {
+            "group": "Database",
+            "pages": [
+              "development/database/migrations",
+              "development/database/schema",
+              "development/database/eloquent"
+            ]
+          },
+          {
+            "group": "Frontend",
+            "pages": [
+              "development/frontend/blade-templates",
+              "development/frontend/design-system",
+              "development/frontend/charts"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Controllers",
+            "pages": [
+              "api/auth-controller",
+              "api/home-controller"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "api/models/user",
+              "api/models/cliente",
+              "api/models/venta",
+              "api/models/factura",
+              "api/models/mensaje"
+            ]
+          },
+          {
+            "group": "Routes",
+            "pages": [
+              "api/routes/web-routes",
+              "api/routes/auth-routes"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Complete authentication system with login, registration, and logout",
+    "Real-time dashboard with KPI metrics and interactive charts",
+    "Client management with segmentation (Premium/Regular/Occasional)",
+    "Sales tracking with order status management",
+    "Invoice management with payment status tracking",
+    "Message inbox with chat interface",
+    "Advanced analytics with Chart.js visualizations",
+    "Responsive Soft UI design system",
+    "PostgreSQL database with Eloquent ORM",
+    "Blade template inheritance and layouts"
+  ],
+  "publicApiSurface": [
+    "AuthController::showLogin()",
+    "AuthController::login()",
+    "AuthController::logout()",
+    "AuthController::showRegister()",
+    "AuthController::register()",
+    "Cliente model with ventas, facturas, mensajes relationships",
+    "Venta model",
+    "Factura model",
+    "Mensaje model",
+    "User model with authentication",
+    "Route: GET /",
+    "Route: POST /login",
+    "Route: POST /logout",
+    "Route: GET /signup",
+    "Route: POST /signup",
+    "Route: GET /dashboard",
+    "Route: GET /estadisticas",
+    "Route: GET /analisis",
+    "Route: GET /ventas",
+    "Route: GET /clientes",
+    "Route: GET /facturas",
+    "Route: GET /mensajes",
+    "Route: GET /configuracion",
+    "Route: GET /nosotros"
+  ]
+}
