@@ -1,0 +1,338 @@
+---
+title: 'About Us Page'
+description: 'Team showcase, gallery, video tutorial, and PQRS contact form for user engagement'
+---
+
+# About Us Page
+
+The About Us page (`/nosotros`) provides a comprehensive company profile with team member showcases, image gallery, embedded video tutorial, and a PQRS (Peticiones, Quejas, Reclamos y Sugerencias) contact form.
+
+## Overview
+
+Access the About Us page at `/nosotros` featuring:
+
+<CardGroup cols={2}>
+  <Card title="Team Showcase" icon="users">
+    Display team members with avatars, roles, and descriptions
+  </Card>
+  <Card title="Image Gallery" icon="images">
+    Visual gallery showcasing company images and work
+  </Card>
+  <Card title="Video Tutorial" icon="video">
+    Embedded video content for user education
+  </Card>
+  <Card title="PQRS Form" icon="envelope">
+    Contact form for requests, complaints, claims, and suggestions
+  </Card>
+</CardGroup>
+
+## Route Configuration
+
+The About Us page is defined in `routes/web.php`:
+
+```php
+Route::get('/nosotros', fn() => view('nosotros'))->name('nosotros');
+```
+
+<Note>
+  View file: `resources/views/nosotros.blade.php`
+</Note>
+
+## Page Layout
+
+The About Us page extends the app layout with custom styling:
+
+```php
+@extends('layouts.app')
+
+@section('title', 'Nosotros - Dashboard')
+@section('nav_nosotros', 'active')
+@section('side_nosotros', 'active')
+
+@section('content')
+    <!-- About Us content -->
+@endsection
+```
+
+## Hero Section
+
+Features company information with decorative elements:
+
+```html
+<div class="hero-nosotros">
+    <div class="hero-text">
+        <h1>Acerca de <span>Nosotros</span></h1>
+        <p>Conoce nuestro equipo, misión y visión empresarial</p>
+        <div class="hero-badges">
+            <span class="hero-badge">🚀 Innovación</span>
+            <span class="hero-badge">💼 Profesionalismo</span>
+            <span class="hero-badge">🤝 Compromiso</span>
+        </div>
+    </div>
+</div>
+```
+
+<Info>
+  The hero section uses the Soft UI design system with decorative circular backgrounds in yellow and pink.
+</Info>
+
+## Team Section
+
+Displays team members with custom card styling:
+
+<Tabs>
+  <Tab title="Team Cards">
+    ```html
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="team-card tc-yellow">
+                <div class="team-avatar">SM</div>
+                <h5 class="team-name">Sara Sofia Mora Trujillo</h5>
+                <p class="team-role">Desarrollador Frontend</p>
+                <p class="team-desc">
+                    Especialista en diseño UI/UX, Vistas Blade, CSS Soft UI y Bootstrap 5
+                </p>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="team-card tc-pink">
+                <div class="team-avatar">JM</div>
+                <h5 class="team-name">Jose Mauricio Cantuca Narvaez</h5>
+                <p class="team-role">Desarrollador Backend</p>
+                <p class="team-desc">
+                    Experto en Laravel, PHP, PostgreSQL, Rutas y Controladores
+                </p>
+            </div>
+        </div>
+    </div>
+    ```
+  </Tab>
+  
+  <Tab title="Styling">
+    Team cards feature:
+    - Colored header bands (yellow/pink)
+    - Avatar circles with initials
+    - Role and description text
+    - Hover animations (transform and shadow)
+    - Border-radius of 20px for modern look
+  </Tab>
+</Tabs>
+
+## Statistics Pills
+
+Displays key metrics about the platform:
+
+```html
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-pill">
+            <div class="stat-pill-icon" style="background:rgba(232,212,77,0.2); color:#6a5800;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <div class="stat-pill-num">2,450</div>
+                <div class="stat-pill-label">Usuarios Activos</div>
+            </div>
+        </div>
+    </div>
+    <!-- More stat pills... -->
+</div>
+```
+
+## Image Gallery
+
+Showcases company work with article-style cards:
+
+<Steps>
+  <Step title="Gallery Structure">
+    Three-column responsive grid with image cards
+  </Step>
+  
+  <Step title="Card Components">
+    Each card includes:
+    - Feature image (160px height, object-fit cover)
+    - Color-coded tag (yellow/pink/green/blue)
+    - Title and description
+    - Metadata footer with date
+  </Step>
+  
+  <Step title="Hover Effects">
+    Cards transform vertically (-4px) and enhance shadow on hover
+  </Step>
+</Steps>
+
+## Embedded Video Tutorial
+
+Video section with labeled iframe:
+
+```html
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="video-wrapper">
+            <div class="video-label">📺 Tutorial</div>
+            <iframe 
+                src="https://www.youtube.com/embed/VIDEO_ID" 
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+</div>
+```
+
+<Note>
+  The video uses a 16:9 aspect ratio with `aspect-ratio` CSS property for responsive sizing.
+</Note>
+
+## PQRS Contact Form
+
+Comprehensive contact form for user inquiries:
+
+<Accordion title="Form Fields">
+  **Nombre (Name)**
+  - Text input, required field
+  - User's full name
+  
+  **Correo Electrónico (Email)**
+  - Email input, required field
+  - Valid email format required
+  
+  **Tipo de Solicitud (Request Type)**
+  - Select dropdown with options:
+    - Petición (Request)
+    - Queja (Complaint)
+    - Reclamo (Claim)
+    - Sugerencia (Suggestion)
+  
+  **Mensaje (Message)**
+  - Textarea, required field
+  - Minimum 10 characters
+  - Detailed user message
+</Accordion>
+
+### Form Implementation
+
+```html
+<form class="contact-form" method="POST" action="/pqrs">
+    @csrf
+    <div class="mb-3">
+        <label for="nombre" class="form-label">Nombre</label>
+        <input type="text" class="form-control" id="nombre" name="nombre" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <input type="email" class="form-control" id="email" name="email" required>
+    </div>
+    
+    <div class="mb-3">
+        <label for="tipo" class="form-label">Tipo de Solicitud</label>
+        <select class="form-select" id="tipo" name="tipo" required>
+            <option value="">Seleccionar...</option>
+            <option value="peticion">Petición</option>
+            <option value="queja">Queja</option>
+            <option value="reclamo">Reclamo</option>
+            <option value="sugerencia">Sugerencia</option>
+        </select>
+    </div>
+    
+    <div class="mb-3">
+        <label for="mensaje" class="form-label">Mensaje</label>
+        <textarea class="form-control" id="mensaje" name="mensaje" rows="5" required></textarea>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Enviar</button>
+</form>
+```
+
+## Design System
+
+The About Us page uses the Soft UI design system:
+
+### Colors
+- Hero background: `#1a1a1a` (dark)
+- Accent yellow: `var(--card-yellow)` from design system
+- Accent pink: `var(--card-pink)` from design system
+
+### Typography
+- Headings: `DM Serif Display` serif font
+- Body text: `DM Sans` sans-serif font
+- Font sizes range from 0.65rem (tags) to 2.4rem (hero title)
+
+### Component Styling
+- Border radius: 14px - 20px for cards and pills
+- Box shadows: `0 4px 20px rgba(0,0,0,0.07)` for depth
+- Hover transforms: `translateY(-4px)` for interactivity
+
+## Nosotros Model
+
+The page is associated with a minimal Eloquent model:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Nosotros extends Model
+{
+    //
+}
+```
+
+<Info>
+  The model uses default Eloquent behavior with timestamps. Currently has no custom fillable fields or relationships.
+</Info>
+
+## Usage Example
+
+Accessing the About Us page:
+
+<Tabs>
+  <Tab title="Browser">
+    Navigate to `/nosotros` from the sidebar menu or directly via URL
+  </Tab>
+  
+  <Tab title="Blade Link">
+    ```blade
+    <a href="{{ route('nosotros') }}">About Us</a>
+    ```
+  </Tab>
+  
+  <Tab title="Controller Redirect">
+    ```php
+    return redirect()->route('nosotros');
+    ```
+  </Tab>
+</Tabs>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Team Profiles" icon="id-card">
+    Professional team member showcases with roles and expertise
+  </Card>
+  <Card title="Visual Content" icon="image">
+    Image gallery and video tutorials for engagement
+  </Card>
+  <Card title="User Feedback" icon="comments">
+    PQRS form for comprehensive user communication
+  </Card>
+  <Card title="Responsive Design" icon="mobile">
+    Fully responsive layout optimized for all devices
+  </Card>
+</CardGroup>
+
+## Related Pages
+
+<CardGroup cols={3}>
+  <Card title="Configuration" icon="gear" href="/config/settings">
+    Settings and preferences
+  </Card>
+  <Card title="Messages" icon="envelope" href="/modules/messages">
+    View user messages and inquiries
+  </Card>
+  <Card title="Views" icon="eye" href="/development/views">
+    Learn about Blade template structure
+  </Card>
+</CardGroup>

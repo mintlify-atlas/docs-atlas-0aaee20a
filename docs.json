@@ -42,7 +42,8 @@
               "features/authentication",
               "features/dashboard",
               "features/statistics",
-              "features/analytics"
+              "features/analytics",
+              "features/about"
             ]
           },
           {
@@ -111,7 +112,10 @@
               "api/models/cliente",
               "api/models/venta",
               "api/models/factura",
-              "api/models/mensaje"
+              "api/models/mensaje",
+              "api/models/nosotros",
+              "api/models/home",
+              "api/models/estadisticas"
             ]
           },
           {

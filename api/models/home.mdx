@@ -1,0 +1,148 @@
+---
+title: 'Home Model'
+description: 'Home dashboard data model for dashboard metrics and statistics'
+---
+
+# Home Model
+
+The `home` model represents dashboard home page data in the Dashboard Laravel application. This model is used for managing dashboard metrics and statistics.
+
+## Model Overview
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class home extends Model
+{
+    public function up()
+    {
+        Schema::create('ventas', function (Blueprint $table) {
+            $table->id();
+            $table->string('producto');
+            $table->integer('cantidad');
+            $table->decimal('precio', 10, 2);
+            $table->date('fecha');
+            $table->timestamps();
+        });
+    }
+}
+```
+
+<Note>
+  This model contains a migration method within the class, which is unconventional. Typically, migrations should be in separate migration files in `database/migrations/`.
+</Note>
+
+## Table Information
+
+<ParamField path="table" type="string" default="homes">
+  Database table name (follows Laravel naming convention)
+</ParamField>
+
+<ParamField path="timestamps" type="boolean" default="true">
+  Automatically manages `created_at` and `updated_at` columns
+</ParamField>
+
+## Database Schema
+
+The `homes` table is created via migration in `database/migrations/`:
+
+```php
+Schema::create('homes', function (Blueprint $table) {
+    $table->id();
+    $table->timestamps();
+});
+```
+
+## Usage
+
+Basic operations with the home model:
+
+<Tabs>
+  <Tab title="Create">
+    ```php
+    use App\Models\home;
+    
+    $homeData = home::create([
+        // Add dashboard metrics
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Read">
+    ```php
+    // Get all home data
+    $allData = home::all();
+    
+    // Find by ID
+    $data = home::find(1);
+    
+    // Get latest dashboard metrics
+    $latest = home::latest()->first();
+    ```
+  </Tab>
+  
+  <Tab title="Update">
+    ```php
+    $data = home::find(1);
+    $data->update([
+        // Update metrics
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Delete">
+    ```php
+    $data = home::find(1);
+    $data->delete();
+    ```
+  </Tab>
+</Tabs>
+
+## Related Models
+
+The embedded schema reference within this model relates to the `Venta` model:
+
+<ResponseField name="producto" type="string">
+  Product name
+</ResponseField>
+
+<ResponseField name="cantidad" type="integer">
+  Quantity sold
+</ResponseField>
+
+<ResponseField name="precio" type="decimal">
+  Product price (10 digits, 2 decimal places)
+</ResponseField>
+
+<ResponseField name="fecha" type="date">
+  Sale date
+</ResponseField>
+
+<Warning>
+  The migration code embedded in this model should be moved to a proper migration file for better organization and Laravel best practices.
+</Warning>
+
+## Best Practices
+
+<Accordion title="Recommended Refactoring">
+  1. Remove the `up()` method from this model
+  2. Create a dedicated migration file: `database/migrations/YYYY_MM_DD_HHMMSS_create_ventas_table.php`
+  3. Move the schema definition to that migration
+  4. Add proper fillable attributes to the model
+  5. Define relationships if this model relates to Venta or other models
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Dashboard Feature" icon="gauge" href="/features/dashboard">
+    Main dashboard page documentation
+  </Card>
+  <Card title="Venta Model" icon="cart-shopping" href="/api/models/venta">
+    Sales model reference
+  </Card>
+</CardGroup>

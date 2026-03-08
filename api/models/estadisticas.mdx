@@ -1,0 +1,164 @@
+---
+title: 'Estadisticas Model'
+description: 'Statistics data model for storing analytics and metrics information'
+---
+
+# Estadisticas Model
+
+The `estadisticas` model represents statistics and analytics data in the Dashboard Laravel application. This model is used for storing and managing dashboard statistics.
+
+## Model Overview
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class estadisticas extends Model
+{
+    //
+}
+```
+
+## Table Information
+
+<ParamField path="table" type="string" default="estadisticas">
+  Database table name (uses lowercase naming)
+</ParamField>
+
+<ParamField path="timestamps" type="boolean" default="true">
+  Automatically manages `created_at` and `updated_at` columns
+</ParamField>
+
+## Database Schema
+
+The `estadisticas` table is created via migration:
+
+```php
+Schema::create('estadisticas', function (Blueprint $table) {
+    $table->id();
+    $table->timestamps();
+});
+```
+
+<Note>
+  This is a minimal model scaffold. The actual schema can be extended with additional fields for storing various statistics metrics.
+</Note>
+
+## Potential Schema Extensions
+
+For a complete statistics model, consider adding these fields:
+
+```php
+Schema::create('estadisticas', function (Blueprint $table) {
+    $table->id();
+    $table->string('metric_name');
+    $table->decimal('metric_value', 10, 2);
+    $table->string('period'); // daily, weekly, monthly, yearly
+    $table->date('date');
+    $table->string('category')->nullable();
+    $table->timestamps();
+});
+```
+
+## Usage
+
+Basic CRUD operations with the estadisticas model:
+
+<Tabs>
+  <Tab title="Create">
+    ```php
+    use App\Models\estadisticas;
+    
+    $stat = estadisticas::create([
+        // Add statistics data
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Read">
+    ```php
+    // Get all statistics
+    $allStats = estadisticas::all();
+    
+    // Find by ID
+    $stat = estadisticas::find(1);
+    
+    // Get recent statistics
+    $recent = estadisticas::latest()->take(10)->get();
+    ```
+  </Tab>
+  
+  <Tab title="Update">
+    ```php
+    $stat = estadisticas::find(1);
+    $stat->update([
+        // Update statistics
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Delete">
+    ```php
+    $stat = estadisticas::find(1);
+    $stat->delete();
+    ```
+  </Tab>
+</Tabs>
+
+## Query Examples
+
+Common queries for statistics data:
+
+```php
+// Get statistics by date range
+$stats = estadisticas::whereBetween('date', [$startDate, $endDate])
+    ->get();
+
+// Get latest 30 days of statistics
+$recentStats = estadisticas::where('date', '>=', now()->subDays(30))
+    ->orderBy('date', 'desc')
+    ->get();
+
+// Get statistics by category
+$categoryStats = estadisticas::where('category', 'sales')
+    ->orderBy('date', 'desc')
+    ->get();
+```
+
+<Info>
+  The queries above assume extended schema fields. Adjust based on your actual implementation.
+</Info>
+
+## Integration with Statistics Page
+
+This model powers the `/estadisticas` route which displays:
+- Monthly sales trends (line chart)
+- Gender demographics (doughnut chart)
+- Top products (horizontal bar chart)
+- Revenue distribution (pie chart)
+
+```php
+// Example controller method
+public function estadisticas()
+{
+    $salesData = estadisticas::where('category', 'sales')
+        ->latest()
+        ->get();
+    
+    return view('estadisticas', compact('salesData'));
+}
+```
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Statistics Feature" icon="chart-bar" href="/features/statistics">
+    Statistics module documentation
+  </Card>
+  <Card title="Charts Integration" icon="chart-line" href="/development/frontend/charts">
+    Chart.js implementation guide
+  </Card>
+</CardGroup>

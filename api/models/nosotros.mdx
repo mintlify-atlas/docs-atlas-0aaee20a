@@ -1,0 +1,104 @@
+---
+title: 'Nosotros Model'
+description: 'About Us company information model for storing organizational details'
+---
+
+# Nosotros Model
+
+The `Nosotros` model represents About Us company information in the Dashboard Laravel application. This model uses default Eloquent behavior for storing organizational details.
+
+## Model Overview
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Nosotros extends Model
+{
+    //
+}
+```
+
+## Table Information
+
+<ParamField path="table" type="string" default="nosotros">
+  Database table name (follows Laravel naming convention)
+</ParamField>
+
+<ParamField path="timestamps" type="boolean" default="true">
+  Automatically manages `created_at` and `updated_at` columns
+</ParamField>
+
+## Database Schema
+
+The `nosotros` table is created via migration:
+
+```php
+Schema::create('nosotros', function (Blueprint $table) {
+    $table->id();
+    $table->timestamps();
+});
+```
+
+## Usage
+
+Basic CRUD operations with the Nosotros model:
+
+<Tabs>
+  <Tab title="Create">
+    ```php
+    use App\Models\Nosotros;
+    
+    $about = Nosotros::create([
+        // Add attributes as needed
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Read">
+    ```php
+    // Get all records
+    $allAbout = Nosotros::all();
+    
+    // Find by ID
+    $about = Nosotros::find(1);
+    
+    // Get latest
+    $latest = Nosotros::latest()->first();
+    ```
+  </Tab>
+  
+  <Tab title="Update">
+    ```php
+    $about = Nosotros::find(1);
+    $about->update([
+        // Update attributes
+    ]);
+    ```
+  </Tab>
+  
+  <Tab title="Delete">
+    ```php
+    $about = Nosotros::find(1);
+    $about->delete();
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  This is a minimal model scaffold. Extend with fillable attributes, relationships, and custom methods as needed for your About Us page requirements.
+</Note>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="About Us Feature" icon="info-circle" href="/features/about">
+    User-facing About Us page documentation
+  </Card>
+  <Card title="Database Schema" icon="database" href="/development/database/schema">
+    Complete database structure reference
+  </Card>
+</CardGroup>
